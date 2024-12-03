@@ -12,4 +12,4 @@ _deps
 CMakeUserPresets.json
 vcpkg_installed/
 .vscode/
-./build/
+build/
