@@ -26,7 +26,7 @@ typedef boost::adjacency_list<
 	EdgeProperties
 > Graph;
 
-
+/*
 int main()
 {
 	try {
@@ -91,3 +91,4 @@ int main()
 	}
 	return 0;
 }
+*/

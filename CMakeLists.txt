@@ -32,7 +32,8 @@ include(FindGUROBI.cmake)
 include_directories(${GUROBI_INCLUDE_DIRS})
 
 # 添加可执行文件
-add_executable(AutoHomePlan src/Solver/main.cpp)
+file(GLOB_RECURSE SOLVER_SOURCES src/Solver/*.cpp)
+add_executable(AutoHomePlan ${SOLVER_SOURCES})
 
 # 链接库
 target_link_libraries(AutoHomePlan PRIVATE ${catkin_LIBRARIES} ${GUROBI_LIBRARIES})
