@@ -2,7 +2,6 @@
     "name": "autohomeplan",
     "version-string": "latest",
     "dependencies": [
-        "imgui",
         "boost-graph",
         "nlohmann-json",
         "assimp"

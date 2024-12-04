@@ -74,7 +74,7 @@ struct edge_writer {
     const SceneGraph& g;
 };
 
-int main()
+int solve()
 {
     bool floorplan = true;
     SceneGraph inputGraph;

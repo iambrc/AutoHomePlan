@@ -21,7 +21,6 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.c
 set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows")
 find_package(assimp CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 find_package(boost_graph REQUIRED CONFIG PATHS CMAKE_PREFIX_PATH)
-find_package(imgui CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 find_package(nlohmann_json CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 
 # 添加源文件和头文件
@@ -33,8 +32,9 @@ include_directories(${GUROBI_INCLUDE_DIRS})
 
 # 添加可执行文件
 file(GLOB_RECURSE SOLVER_SOURCES src/Solver/*.cpp)
-add_executable(AutoHomePlan ${SOLVER_SOURCES})
+file(GLOB_RECURSE demo_SOURCES src/demo/*.cpp src/demo/*.h)
+add_executable(AutoHomePlan ${SOLVER_SOURCES} ${demo_SOURCES})
 
 # 链接库
 target_link_libraries(AutoHomePlan PRIVATE ${catkin_LIBRARIES} ${GUROBI_LIBRARIES})
-target_link_libraries(AutoHomePlan PRIVATE assimp::assimp imgui::imgui Boost::graph nlohmann_json::nlohmann_json)
+target_link_libraries(AutoHomePlan PRIVATE assimp::assimp Boost::graph nlohmann_json::nlohmann_json)
