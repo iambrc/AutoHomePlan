@@ -43,4 +43,4 @@ dot -Tpng input.dot -o output.png
 TODO
 
 ## Acknowledgement
-TODO
+The framework of this project partially references [2024 Computer Graphics course assignment](https://github.com/USTC-CG/USTC_CG_24).

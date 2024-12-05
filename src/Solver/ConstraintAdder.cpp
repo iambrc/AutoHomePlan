@@ -299,7 +299,6 @@ void ConstraintAdder(GRBModel& model, SceneGraph g, Boundary boundary, std::vect
 		}
 	}
 	// Floor Plan Constraints :AREA
-	// 非常影响效率！！！！！
 
 	if (floorplan)
 	{

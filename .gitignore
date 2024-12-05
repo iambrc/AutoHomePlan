@@ -13,3 +13,4 @@ CMakeUserPresets.json
 vcpkg_installed/
 .vscode/
 Assets/
+build/

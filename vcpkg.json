@@ -4,6 +4,12 @@
     "dependencies": [
         "boost-graph",
         "nlohmann-json",
-        "assimp"
+        "assimp",
+        "glm",
+        "glfw3",
+        {
+        "name": "imgui",
+        "features": ["glfw-binding", "opengl3-binding"]
+        }
     ]
 }
