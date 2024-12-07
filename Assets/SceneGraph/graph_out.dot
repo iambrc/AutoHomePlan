@@ -1,0 +1,22 @@
+digraph G {
+0[label="LivingRoom\nSize: 0.433384 0.300008\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.433384, height=0.300008];
+1[label="LivingRoom\nSize: 0.466608 0.300005\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.466608, height=0.300005];
+2[label="BedRoom\nSize: 0.2 0.4\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.4];
+3[label="BedRoom\nSize: 0.203684 0.399987\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.203684, height=0.399987];
+4[label="Kitchen\nSize: 0.166725 0.300006\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.166725, height=0.300006];
+5[label="Kitchen\nSize: 0.166667 0.300006\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.166667, height=0.300006];
+6[label="KidRoom\nSize: 0.148453 0.399985\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.148453, height=0.399985];
+7[label="KidRoom\nSize: 0.147863 0.399986\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.147863, height=0.399986];
+8[label="BathRoom\nSize: 0.2 0.15\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.15];
+9[label="BathRoom\nSize: 0.2 0.15\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.15];
+10[label="WorkRoom\nSize: 0.183309 0.299994\nPriority: 0\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.183309, height=0.299994];
+11[label="WorkRoom\nSize: 0.183308 0.299994\nPriority: 0\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.183308, height=0.299994];
+0->1 [label="Front of\n", color="green"];
+0->8 [label="Left of\n", color="red"];
+3->2 [label="Left of\n", color="red"];
+5->4 [label="Left of\n", color="red"];
+6->0 [label="Front of\n", color="green"];
+7->6 [label="Left of\n", color="red"];
+8->9 [label="Front of\n", color="green"];
+11->10 [label="Left of\n", color="red"];
+}

@@ -3,14 +3,8 @@
 #include <boost/graph/strong_components.hpp>
 #include "SceneGraph.h"
 #include "InputScene.h"
-
 #include <map>
 #include <random>
-
-extern std::vector<EdgeType> edgetypes;
-extern std::vector<std::string> edgenames;
-extern std::vector<Orientation> orientations;
-extern std::vector<std::string> orientationnames;
 
 struct EdgeTypeFilter {
     EdgeTypeFilter() : g(nullptr), type(LeftOf) {}
@@ -24,11 +18,24 @@ struct EdgeTypeFilter {
     EdgeType type;
 };
 
-bool check_overlap(std::vector<double> r1, std::vector<double> r2);
-bool check_inside(std::vector<double> r, std::vector<double> R);
-void remove_cycles(SceneGraph& g, EdgeType edge_type);
-void remove_position_constraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles);
-SceneGraph Processor(const SceneGraph& inputGraph, const Boundary& boundary, std::vector<Obstacles> obstalces);
-Orientation opposite_orientation(Orientation o);
-SceneGraph SplitGraph4(const SceneGraph& g, const Boundary& boundary);
-SceneGraph SplitGraph2(const SceneGraph& g, const Boundary& boundary);
+class GraphProcessor {
+public:
+    GraphProcessor();
+    ~GraphProcessor();
+
+    SceneGraph process(const SceneGraph& inputGraph, const Boundary& boundary, std::vector<Obstacles> obstacles);
+    SceneGraph splitGraph4(const SceneGraph& g, const Boundary& boundary);
+    SceneGraph splitGraph2(const SceneGraph& g, const Boundary& boundary);
+
+    std::vector<EdgeType> edgetypes;
+    std::vector<std::string> edgenames;
+    std::vector<Orientation> orientations;
+    std::vector<std::string> orientationnames;
+
+private:
+    bool checkOverlap(std::vector<double> r1, std::vector<double> r2);
+    bool checkInside(std::vector<double> r, std::vector<double> R);
+    void removeCycles(SceneGraph& g, EdgeType edge_type);
+    void removePositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles);
+    Orientation oppositeOrientation(Orientation o);
+};

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
+#include "view/SceneViewer.h"
+#include "view/Camera.h"
+#include "Components/Solver.h"
 
 class Window {
 public:
@@ -17,20 +19,9 @@ public:
     // Enters the main rendering loop.
     void run();
 
-    bool flag_open_file_dialog = false; // Flag to open file dialog.
-
 protected:
-    // Virtual draw function to be implemented by derived classes for custom
-    // rendering.
-    virtual void BuildUI();
-
-    virtual void Render()
-    {
-        // Placeholder for custom rendering code.
-    }
-
-
-protected:
+    void BuildUI();
+    void Render();
     // Initializes GLFW library.
     bool init_glfw();
 
@@ -44,5 +35,22 @@ protected:
     GLFWwindow* window_ = nullptr; // Pointer to the GLFW window.
     int width_ = 1920;             // Width of the window.
     int height_ = 1080;            // Height of the window.
+
 private:
+    void ProcessInput(float deltaTime);
+    static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+    static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+
+    bool flag_open_file_dialog_ = false; // Flag to open file dialog.
+    SceneViewer scene_viewer_;           // Scene viewer object.
+    Solver solver_;                     // Solver object.
+
+    Camera camera;
+    float lastX;
+    float lastY;
+    bool firstMouse;
+
+    float lastFrame;
+    float currentFrame;
 };

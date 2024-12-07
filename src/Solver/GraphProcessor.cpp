@@ -1,11 +1,15 @@
 #include "Components/GraphProcessor.h"
 
-std::vector<EdgeType> edgetypes = { LeftOf, RightOf, FrontOf, Behind, Above, Under, CloseBy, AlignWith };
-std::vector<std::string> edgenames = { "LeftOf", "RightOf", "FrontOf", "Behind", "Above", "Under", "CloseBy", "AlignWith" };
-std::vector<Orientation> orientations = { UP, DOWN, LEFT, RIGHT, FRONT, BACK };
-std::vector<std::string> orientationnames = { "UP", "DOWN", "LEFT", "RIGHT", "FRONT", "BACK" };
+GraphProcessor::GraphProcessor() {
+    edgetypes = { LeftOf, RightOf, FrontOf, Behind, Above, Under, CloseBy, AlignWith };
+    edgenames = { "LeftOf", "RightOf", "FrontOf", "Behind", "Above", "Under", "CloseBy", "AlignWith" };
+    orientations = { UP, DOWN, LEFT, RIGHT, FRONT, BACK };
+    orientationnames = { "UP", "DOWN", "LEFT", "RIGHT", "FRONT", "BACK" };
+}
 
-Orientation opposite_orientation(Orientation o) {
+GraphProcessor::~GraphProcessor() {}
+
+Orientation GraphProcessor::oppositeOrientation(Orientation o) {
     switch (o) {
     case UP: return DOWN;
     case DOWN: return UP;
@@ -17,7 +21,7 @@ Orientation opposite_orientation(Orientation o) {
     return UP;
 }
 
-bool check_overlap(std::vector<double> r1, std::vector<double> r2)
+bool GraphProcessor::checkOverlap(std::vector<double> r1, std::vector<double> r2)
 {
     // r1 : x ,y, l, w
 	if (std::fabs(r1[0] - r2[0]) > r1[2] / 2 + r2[2] / 2 || 
@@ -26,7 +30,7 @@ bool check_overlap(std::vector<double> r1, std::vector<double> r2)
 	return true;
 }
 
-bool check_inside(std::vector<double> r, std::vector<double> R)
+bool GraphProcessor::checkInside(std::vector<double> r, std::vector<double> R)
 {
     // r : x, y, l, w
 	if (r[0] - r[2] / 2 < R[0] - R[2] / 2 || r[0] + r[2] / 2 > R[0] + R[2] / 2 ||
@@ -35,7 +39,7 @@ bool check_inside(std::vector<double> r, std::vector<double> R)
 	return true;
 }
 
-void remove_cycles(SceneGraph& g, EdgeType edge_type) {
+void GraphProcessor::removeCycles(SceneGraph& g, EdgeType edge_type) {
     EdgeTypeFilter edge_filter(g, edge_type);
     boost::filtered_graph<SceneGraph, EdgeTypeFilter> filtered_g(g, edge_filter);
 
@@ -57,7 +61,7 @@ void remove_cycles(SceneGraph& g, EdgeType edge_type) {
     }
 }
 
-void remove_position_constraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles)
+void GraphProcessor::removePositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles)
 {
 	int boundary_edges = boundary.Orientations.size();
     VertexIterator vi, vi_end;
@@ -77,33 +81,33 @@ void remove_position_constraint(SceneGraph& g, const Boundary& boundary, std::ve
             switch (boundary.Orientations[g[*vi].boundary])
             {
 			case FRONT: 
-                if (!check_overlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 - w_ / 2, x2 - x1, y_t / 2 }))
+                if (!checkOverlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 - w_ / 2, x2 - x1, y_t / 2 }))
 				    g[*vi].target_pos = {};
 				break;
 			case BACK: 
-				if (!check_overlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 + w_ / 2, x2 - x1, y_t / 2 }))
+				if (!checkOverlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 + w_ / 2, x2 - x1, y_t / 2 }))
 					g[*vi].target_pos = {};
 				break;
 			case LEFT:
-				if (!check_overlap({ x_, y_, x_t, y_t }, { x1 + l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
+				if (!checkOverlap({ x_, y_, x_t, y_t }, { x1 + l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
 					g[*vi].target_pos = {};
 				break;
 			case RIGHT:
-                if (!check_overlap({ x_, y_, x_t, y_t }, { x1 - l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
+                if (!checkOverlap({ x_, y_, x_t, y_t }, { x1 - l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
                     g[*vi].target_pos = {};
 				break;
 			default:
 				break;
             }
 			if (!g[*vi].target_pos.empty()) {
-                if (!check_inside({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
+                if (!checkInside({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
                     { boundary.origin_pos[0] + boundary.size[0] / 2, boundary.origin_pos[1] + boundary.size[1] / 2,
                     boundary.size[0], boundary.size[1] }))
                     g[*vi].target_pos = {};
                 else
                 {
                     for (auto i = 0; i < obstacles.size(); ++i) {
-                        if (check_overlap({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
+                        if (checkOverlap({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
                             { obstacles[i].pos[0], obstacles[i].pos[1], obstacles[i].size[0], obstacles[i].size[1] }))
                         {
                             g[*vi].target_pos = {};
@@ -118,7 +122,7 @@ void remove_position_constraint(SceneGraph& g, const Boundary& boundary, std::ve
 	}
 }
 
-SceneGraph Processor(const SceneGraph& inputGraph, const Boundary& boundary, std::vector<Obstacles> obstacles)
+SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary& boundary, std::vector<Obstacles> obstacles)
 {
     SceneGraph outputGraph = inputGraph;
     // Find and work with rings in each type of edge
@@ -152,14 +156,14 @@ SceneGraph Processor(const SceneGraph& inputGraph, const Boundary& boundary, std
         boost::add_edge(edges_to_reverse[i].second, edges_to_reverse[i].first, new_edge_properties[i], outputGraph);
     }
     for (EdgeType edgetype : {LeftOf, RightOf, FrontOf, Behind, Above, Under}) {
-        remove_cycles(outputGraph, edgetype);
+        removeCycles(outputGraph, edgetype);
     }
     // Find the contradiction between boundary constraints and position/orientation constraints
     VertexIterator vi, vi_end;
     for (boost::tie(vi, vi_end) = boost::vertices(outputGraph); vi != vi_end; ++vi) {
         Orientation o_vi = outputGraph[*vi].orientation;
         if (outputGraph[*vi].boundary >= 0 && boundary.Orientations[outputGraph[*vi].boundary] == o_vi)
-			outputGraph[*vi].orientation = opposite_orientation(o_vi);
+			outputGraph[*vi].orientation = oppositeOrientation(o_vi);
         // check for contradictions between position/size constraints and on-floor constarints
         if (!outputGraph[*vi].target_pos.empty() && !outputGraph[*vi].pos_tolerance.empty() &&
             !outputGraph[*vi].target_size.empty() && !outputGraph[*vi].size_tolerance.empty() &&
@@ -167,7 +171,7 @@ SceneGraph Processor(const SceneGraph& inputGraph, const Boundary& boundary, std
             outputGraph[*vi].target_size[2] / 2 + outputGraph[*vi].size_tolerance[2] / 2)
             outputGraph[*vi].target_pos[2] = outputGraph[*vi].target_size[2] / 2;
     }
-    remove_position_constraint(outputGraph, boundary, obstacles);
+    removePositionConstraint(outputGraph, boundary, obstacles);
     // Find contradiction between on floor constraints and above/under constraints
     for (boost::tie(ei, ei_end) = boost::edges(outputGraph); ei != ei_end; ++ei) {
 		VertexDescriptor v1 = boost::source(*ei, outputGraph);
@@ -184,7 +188,7 @@ SceneGraph Processor(const SceneGraph& inputGraph, const Boundary& boundary, std
     return outputGraph;
 }
 
-SceneGraph SplitGraph4(const SceneGraph& g, const Boundary& boundary)
+SceneGraph GraphProcessor::splitGraph4(const SceneGraph& g, const Boundary& boundary)
 {
     SceneGraph g_split = {};
 	auto num_vertices = boost::num_vertices(g), num_edges = boost::num_edges(g);
@@ -293,7 +297,7 @@ SceneGraph SplitGraph4(const SceneGraph& g, const Boundary& boundary)
 	return g_split;
 }
 
-SceneGraph SplitGraph2(const SceneGraph& g, const Boundary& boundary)
+SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boundary)
 {
     SceneGraph g_split = {};
     auto num_vertices = boost::num_vertices(g), num_edges = boost::num_edges(g);

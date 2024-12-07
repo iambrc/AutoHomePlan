@@ -27,9 +27,9 @@ vcpkg install
 
 ### 4.Visualization of scene graphs
 
-Here, we use [Graphviz](https://graphviz.org/) to visualize the scene graph.
+Here, we use [Graphviz](https://graphviz.org/) to visualize the scene graph. You can install Graphviz and add it to environment variable PATH.
 
-You can save the scene graph as a .dot file and run the following code to obtain the scene graph:
+The dot files are stored in the [Asset/SceneGraph](Assets/SceneGraph) folder. You can run the following code to obtain the scene graph:
 
 ```
 dot -Tpng input.dot -o output.png
@@ -37,7 +37,7 @@ dot -Tpng input.dot -o output.png
 
 
 ## Assets
-3D assets are from [BlenderKit](https://www.blenderkit.com/).
+3D assets are from [Free3D](https://free3d.com/).
 
 ## Other Information
 TODO

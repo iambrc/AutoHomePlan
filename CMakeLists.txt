@@ -52,7 +52,9 @@ include_directories(${GUROBI_INCLUDE_DIRS})
 # add executable
 file(GLOB_RECURSE SOLVER_SOURCES src/Solver/*.cpp)
 file(GLOB_RECURSE GUI_SOURCES src/GUI/*.cpp)
-add_executable(AutoHomePlan ${GUI_SOURCES} ${SOLVER_SOURCES})
+file(GLOB_RECURSE VIEW_SOURCES src/view/*.cpp)
+file(GLOB_RECURSE SHADER_SOURCES src/Shaders/*.cpp)
+add_executable(AutoHomePlan ${GUI_SOURCES} ${SOLVER_SOURCES} ${VIEW_SOURCES} ${SHADER_SOURCES})
 
 # link libraries
 target_link_libraries(AutoHomePlan PRIVATE ${catkin_LIBRARIES} ${GUROBI_LIBRARIES})
