@@ -136,7 +136,7 @@ void Window::BuildUI()
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                scene_viewer_.loadModel(filePathName);
+                scene_viewer_.LoadModel(filePathName);
             }
             ImGuiFileDialog::Instance()->Close();
             flag_open_file_dialog_ = false;
@@ -148,7 +148,7 @@ void Window::BuildUI()
 void Window::Render()
 {
     ImGuiIO& io = ImGui::GetIO();
-    scene_viewer_.renderModel(camera.GetViewMatrix(), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y));
+    scene_viewer_.renderModel(camera.GetViewMatrix(), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y), camera.getPosition());
     scene_viewer_.rendersky(glm::mat4(glm::mat3(camera.GetViewMatrix())), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y));
 }
 

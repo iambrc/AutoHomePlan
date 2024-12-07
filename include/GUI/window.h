@@ -53,4 +53,6 @@ private:
 
     float lastFrame;
     float currentFrame;
+
+    Shader shader, skyboxshader;
 };

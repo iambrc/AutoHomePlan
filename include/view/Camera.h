@@ -15,6 +15,8 @@ public:
     void ProcessMouseMovement(float xoffset, float yoffset);
     void ProcessMouseScroll(float yoffset);
 
+    glm::vec3 getPosition() { return Position; }
+
 private:
     glm::vec3 Position;
     glm::vec3 Front;
