@@ -39,7 +39,6 @@ void Mesh::Draw(Shader &shader)
     shader.setVec3("diffuse", material.diffuseColor);
     shader.setVec3("specular", material.specularColor);
     shader.setFloat("shininess", material.shininess);
-    shader.setVec3("lightPos", glm::vec3(-3.0f, -3.0f, 0.0f));
     if (material.textures.size() == 0)
         shader.setBool("hasTexture", false);
     else

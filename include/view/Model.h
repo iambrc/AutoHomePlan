@@ -25,14 +25,23 @@ public:
     // constructor, expects a filepath to a 3D model.
     Model(std::string const &path, bool gamma = false) : gammaCorrection(gamma)
     {
+        minBounds = glm::vec3(FLT_MAX);
+        maxBounds = glm::vec3(-FLT_MAX);
+        modelmatrix = glm::mat4(1.0f);
         loadModel(path);
+        updateAABB(modelmatrix);
     }
+
+    ~Model() {}
 
     // draws the model, and thus all its meshes
     void Draw(Shader &shader);
 
     // Model Matrix
     glm::mat4 modelmatrix;
+    glm::vec3 minBounds, maxBounds;
+
+    void updateAABB(const glm::mat4& newModelMatrix);
     
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.

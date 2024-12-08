@@ -63,6 +63,9 @@ void Model::loadModel(std::string const &path)
     directory = path.substr(0, path.find_last_of('/'));
     // process ASSIMP's root node recursively
     processNode(scene->mRootNode, scene);
+    modelmatrix = glm::translate(modelmatrix, -(minBounds + maxBounds) / 2.0f);
+    float scale = 2.0f / glm::max(maxBounds.x - minBounds.x, glm::max(maxBounds.y - minBounds.y, maxBounds.z - minBounds.z));
+    modelmatrix = glm::scale(modelmatrix, glm::vec3(scale));
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene)
@@ -89,7 +92,6 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
 
-    float xrange[] = {0.0f, 0.0f}, yrange[] = {0.0f, 0.0f}, zrange[] = {0.0f, 0.0f};
     // walk through each of the mesh's vertices
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -101,12 +103,13 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
         vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
 
-        if (i == 0 || vector.x < xrange[0]) xrange[0] = vector.x;
-        if (i == 0 || vector.x > xrange[1]) xrange[1] = vector.x;
-        if (i == 0 || vector.y < yrange[0]) yrange[0] = vector.y;
-        if (i == 0 || vector.y > yrange[1]) yrange[1] = vector.y;
-        if (i == 0 || vector.z < zrange[0]) zrange[0] = vector.z;
-        if (i == 0 || vector.z > zrange[1]) zrange[1] = vector.z;
+        if (vector.x < minBounds.x) minBounds.x = vector.x;
+        if (vector.y < minBounds.y) minBounds.y = vector.y;
+        if (vector.z < minBounds.z) minBounds.z = vector.z;
+        if (vector.x > maxBounds.x) maxBounds.x = vector.x;
+        if (vector.y > maxBounds.y) maxBounds.y = vector.y;
+        if (vector.z > maxBounds.z) maxBounds.z = vector.z;
+
         // normals
         if (mesh->HasNormals())
         {
@@ -139,10 +142,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
     }
-    // set basic model matrix
-    modelmatrix = glm::mat4(1.0f);
-    //modelmatrix = glm::translate(modelmatrix, glm::vec3((xrange[0] + xrange[1]) / 2, (yrange[0] + yrange[1]) / 2, (zrange[0] + zrange[1]) / 2));
-    modelmatrix = glm::scale(modelmatrix, glm::vec3(2.0f / std::max(xrange[1] - xrange[0], std::max(yrange[1] - yrange[0], zrange[1] - zrange[0]))));
+
     // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
     for(unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
@@ -242,4 +242,29 @@ Material Model::loadMaterial(aiMaterial *mat)
     }
 
     return material;
+}
+
+void Model::updateAABB(const glm::mat4& newModelMatrix)
+{
+    glm::vec3 corners[8] = {
+        glm::vec3(minBounds.x, minBounds.y, minBounds.z),
+        glm::vec3(minBounds.x, minBounds.y, maxBounds.z),
+        glm::vec3(minBounds.x, maxBounds.y, minBounds.z),
+        glm::vec3(minBounds.x, maxBounds.y, maxBounds.z),
+        glm::vec3(maxBounds.x, minBounds.y, minBounds.z),
+        glm::vec3(maxBounds.x, minBounds.y, maxBounds.z),
+        glm::vec3(maxBounds.x, maxBounds.y, minBounds.z),
+        glm::vec3(maxBounds.x, maxBounds.y, maxBounds.z)
+    };
+
+    glm::vec3 newMinBounds = glm::vec3(INFINITY);
+    glm::vec3 newMaxBounds = glm::vec3(-INFINITY);
+
+    for (int i = 0; i < 8; i++) {
+        glm::vec4 transformedCorner = newModelMatrix * glm::vec4(corners[i], 1.0f);
+        newMinBounds = glm::min(newMinBounds, glm::vec3(transformedCorner));
+        newMaxBounds = glm::max(newMaxBounds, glm::vec3(transformedCorner));
+    }
+    minBounds = newMinBounds;
+    maxBounds = newMaxBounds;
 }

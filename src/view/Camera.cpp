@@ -16,6 +16,8 @@ glm::mat4 Camera::GetViewMatrix() {
 }
 
 glm::mat4 Camera::GetProjectionMatrix(float width, float height) {
+    if (height <= 1e-3)
+        return glm::perspective(glm::radians(Zoom), 1.0f, 0.1f, 100.0f);
     return glm::perspective(glm::radians(Zoom), width / height, 0.1f, 100.0f);
 }
 

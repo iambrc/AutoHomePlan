@@ -52,6 +52,7 @@ public:
 
     // constructor
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material material);
+    ~Mesh(){}
 
     // render the mesh
     void Draw(Shader &shader);

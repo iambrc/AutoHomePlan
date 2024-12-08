@@ -38,11 +38,18 @@ protected:
 
 private:
     void ProcessInput(float deltaTime);
-    static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+    static void MouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
+    static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 
     bool flag_open_file_dialog_ = false; // Flag to open file dialog.
+    bool show_context_menu_ = false;      // Flag to show the context menu.
+    bool is_context_menu_open_ = false;   // Flag to indicate if the context menu is open.
+    bool model_selected_ = false;         // Flag to indicate if a model is selected.
+    float context_menu_x_ = 0.0f;         // X-coordinate of the context menu.
+    float context_menu_y_ = 0.0f;         // Y-coordinate of the context menu.
+
     SceneViewer scene_viewer_;           // Scene viewer object.
     Solver solver_;                     // Solver object.
 

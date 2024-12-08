@@ -22,7 +22,8 @@ Window::Window(const std::string& window_name) : name_(window_name)
 
     glfwMakeContextCurrent(window_);
     glfwSetWindowUserPointer(window_, this);
-    glfwSetCursorPosCallback(window_, MouseCallback);
+    glfwSetCursorPosCallback(window_, MouseMoveCallback);
+    glfwSetMouseButtonCallback(window_, MouseButtonCallback);
     glfwSetScrollCallback(window_, ScrollCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -79,24 +80,23 @@ void Window::run()
 
 void Window::BuildUI()
 {
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
-                                    ImGuiWindowFlags_NoBackground |
-                                    ImGuiWindowFlags_NoCollapse |
-                                    ImGuiWindowFlags_NoMove;
-    //const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    //::SetNextWindowPos(viewport->WorkPos);
-    //ImGui::SetNextWindowSize(viewport->WorkSize);
-    //ImGui::SetNextWindowSize(viewport->WorkSize);
-
-    /*
-    ImGuiIO& io = ImGui::GetIO();
-    if (ImGui::Begin("AutoHomePlan", nullptr, window_flags))
-    {
-        ImGui::Text("AutoHomePlan : TODO: We will Implement model rendering here in the future.");
-        scene_viewer_.renderModel(camera.GetViewMatrix(), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y));
+    if (show_context_menu_) {
+        ImGui::OpenPopup("Context Menu");
+        show_context_menu_ = false;
     }
-    ImGui::End();
-    */
+
+    if (ImGui::BeginPopup("Context Menu")) {
+        if (ImGui::MenuItem("Delete Model")) {
+            scene_viewer_.DeleteSelectedModel();
+            model_selected_ = false;
+        }
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::IsPopupOpen("Context Menu"))
+        is_context_menu_open_ = true;
+    else
+        is_context_menu_open_ = false;
     
     if (ImGui::Begin("Setting Solver"))
     {
@@ -112,6 +112,16 @@ void Window::BuildUI()
         {
             solver_.solve();
         }
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("Setting Renderer"))
+    {
+        ImGui::SliderFloat("light position x", &scene_viewer_.lightPos.x, -10.0f, 10.0f);
+        ImGui::SliderFloat("light position y", &scene_viewer_.lightPos.y, -10.0f, 10.0f);
+        ImGui::SliderFloat("light position z", &scene_viewer_.lightPos.z, -10.0f, 10.0f);
+
+        ImGui::ColorEdit3("Color", glm::value_ptr(scene_viewer_.lightColor), ImGuiColorEditFlags_Float);
     }
     ImGui::End();
     
@@ -142,7 +152,6 @@ void Window::BuildUI()
             flag_open_file_dialog_ = false;
         }
     }
-    //ImGui::ShowDemoWindow();
 }
 
 void Window::Render()
@@ -234,7 +243,7 @@ void Window::ProcessInput(float deltaTime) {
         camera.ProcessKeyboardInput(GLFW_KEY_E, deltaTime);
 }
 
-void Window::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+void Window::MouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
     Window* instance = static_cast<Window*>(glfwGetWindowUserPointer(window));
     if (instance->firstMouse) {
         instance->lastX = xpos;
@@ -255,4 +264,29 @@ void Window::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
 void Window::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     Window* instance = static_cast<Window*>(glfwGetWindowUserPointer(window));
     instance->camera.ProcessMouseScroll(yoffset);
+}
+
+void Window::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    Window* instance = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+
+    if (action == GLFW_PRESS)
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && !instance->is_context_menu_open_)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            instance->model_selected_ = instance->scene_viewer_.SelectModelAt(xpos, ypos,
+                instance->camera.GetViewMatrix(),
+                instance->camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y),
+                instance->camera.getPosition());
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && instance->model_selected_)
+        {
+            instance->context_menu_x_ = xpos;
+            instance->context_menu_y_ = ypos;
+            instance->show_context_menu_ = true;
+        }
+    }
 }
