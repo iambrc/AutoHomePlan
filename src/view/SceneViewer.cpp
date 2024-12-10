@@ -5,6 +5,8 @@ SceneViewer::SceneViewer() {
     lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
     lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     selectedModelIndex = -1;
+    wallWidth = 0.02f;
+    othermeshes = {};
 }
 
 SceneViewer::~SceneViewer() {}
@@ -28,6 +30,20 @@ void SceneViewer::initshader(const std::string& vertexPath, const std::string& f
     loadCubemap(faces);
     skyboxshader.use();
     skyboxshader.setInt("skybox", 0);
+}
+
+void SceneViewer::renderOtherMesh(glm::mat4 view, glm::mat4 projection, glm::vec3 cameraPos) {
+    shader.use();
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+    shader.setMat4("model", glm::mat4(1.0f));
+    shader.setVec3("viewPos", cameraPos);
+    shader.setVec3("lightPos", lightPos);
+    shader.setVec3("lightColor", lightColor);
+    shader.setVec3("highlightColor", glm::vec3(1.0, 1.0, 1.0));
+    for (auto i = 0; i < othermeshes.size(); ++i) {
+        othermeshes[i].Draw(shader);
+    }
 }
 
 void SceneViewer::renderModel(glm::mat4 view, glm::mat4 projection, glm::vec3 cameraPos) {
@@ -238,4 +254,97 @@ void SceneViewer::DeleteSelectedModel() {
         models.erase(models.begin() + selectedModelIndex);
         selectedModelIndex = -1; // Reset selection
     }
+}
+
+void SceneViewer::setupRooms(SceneGraph g, float bmsize)
+{
+    float scalefactor = 10.0f / bmsize;
+    VertexIterator vi, vi_end;
+    for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+        othermeshes.push_back(GenerateFloor(g[*vi].pos, g[*vi].size, scalefactor));
+    }
+    for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; vi += 2) {
+        auto wallmeshes = GenerateWall(g[*vi].pos, g[*vi].size, g[*vi + 1].pos, g[*vi + 1].size, scalefactor);
+        for (auto& wall : wallmeshes)
+            othermeshes.push_back(wall);
+    }
+}
+
+Mesh SceneViewer::GenerateFloor(std::vector<double> pos, std::vector<double> size, float scalefactor)
+{
+    Material mat;
+    mat.diffuseColor = glm::vec3(0.6f, 0.4f, 0.2f);
+    mat.ambientColor = glm::vec3(0.3f, 0.3f, 0.1f);
+    mat.specularColor = glm::vec3(0.1f, 0.1f, 0.1f);
+    mat.shininess = 32.0f;
+    mat.textures = {};
+    return GenerateSquare(glm::vec3(pos[0], 0.0f, pos[1]), glm::vec3(size[0], 0.0f, size[1]), mat, glm::vec3(0.0f, 1.0f, 0.0f), scalefactor);
+}
+
+Mesh SceneViewer::GenerateSquare(const glm::vec3& pos, const glm::vec3& size, Material mat, glm::vec3 normal,float scalefactor)
+{
+    glm::vec3 p1 = pos - size / 2.0f;
+    glm::vec3 p2 = pos + glm::vec3(size.x / 2.0f, size.y / 2.0f, -size.z / 2.0f);
+    glm::vec3 p3 = pos + size / 2.0f;
+    glm::vec3 p4 = pos + glm::vec3(-size.x / 2.0f, -size.y / 2.0f, size.z / 2.0f);
+    if (size.z <= 1e-6) {
+        p2 = pos + glm::vec3(size.x / 2.0f, -size.y / 2.0f, 0.0f);
+        p4 = pos + glm::vec3(-size.x / 2.0f, size.y / 2.0f, 0.0f);
+    }
+    std::vector<Vertex> vertices = {
+        Vertex({ p1 * scalefactor, normal, glm::vec2(0.0f, 0.0f) }),
+        Vertex({ p2 * scalefactor, normal, glm::vec2(1.0f, 0.0f) }),
+        Vertex({ p3 * scalefactor, normal, glm::vec2(1.0f, 1.0f) }),
+        Vertex({ p4 * scalefactor, normal, glm::vec2(0.0f, 1.0f) }),
+    };
+    std::vector<unsigned int> indices = {
+        0, 1, 3,
+        1, 2, 3
+    };
+    return Mesh(vertices, indices, mat);
+}
+
+std::vector<Mesh> SceneViewer::GenerateWall(std::vector<double> pos1, std::vector<double> size1, std::vector<double> pos2, std::vector<double> size2, float scalefactor)
+{
+    Material mat;
+    mat.diffuseColor = glm::vec3(0.7f, 0.7f, 0.7f);
+    mat.ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    mat.specularColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    mat.shininess = 32.0f;
+    mat.textures = {};
+    std::vector<std::vector<double>> points = {
+            { pos2[0] - size2[0] / 2, pos2[1] - size2[1] / 2 },
+            { pos2[0] + size2[0] / 2, pos2[1] - size2[1] / 2 },
+            { pos2[0] + size2[0] / 2, pos2[1] + size2[1] / 2 },
+            { pos1[0] + size1[0] / 2, pos1[1] - size1[1] / 2 },
+            { pos1[0] + size1[0] / 2, pos1[1] + size1[1] / 2 },
+            { pos1[0] - size1[0] / 2, pos1[1] + size1[1] / 2 },
+            { pos1[0] - size1[0] / 2, pos1[1] - size1[1] / 2 },
+            { pos2[0] - size2[0] / 2, pos2[1] + size2[1] / 2 },
+        };
+    if (std::fabs(pos1[0] - size1[0] / 2 - pos2[0] - size2[0] / 2) < 1e-3) {
+        points[2] = { pos1[0] - size1[0] / 2, pos1[1] - size1[1] / 2 };
+        points[6] = { pos2[0] + size2[0] / 2, pos2[1] + size2[1] / 2 };
+    }
+    float height = size1[2];
+    std::vector<Mesh> res = {};
+    for (auto i = 0; i < 8; ++i) {
+        glm::vec2 p1 = { points[i][0], points[i][1] };
+        glm::vec2 p2 = { points[(i + 1) % 8][0], points[(i + 1) % 8][1] };
+        if (glm::abs(p1.y - p2.y) < 1e-6) {
+            res.push_back(GenerateSquare(glm::vec3((p1.x + p2.x) / 2, height, p1.y), glm::vec3(glm::abs(p1.x - p2.x) + wallWidth, 0.0f, wallWidth), mat, glm::vec3(0.0f, 1.0f, 0.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3((p1.x + p2.x) / 2, height / 2, p1.y + wallWidth / 2), glm::vec3(glm::abs(p1.x - p2.x) + wallWidth, height, 0.0f), mat, glm::vec3(0.0f, 0.0f, 1.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3((p1.x + p2.x) / 2, height / 2, p1.y - wallWidth / 2), glm::vec3(glm::abs(p1.x - p2.x) + wallWidth, height, 0.0f), mat, glm::vec3(0.0f, 0.0f, -1.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p1.x - wallWidth / 2, height / 2, p1.y), glm::vec3(0.0f, height, wallWidth), mat, glm::vec3(-1.0f, 0.0f, 0.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p2.x + wallWidth / 2, height / 2, p1.y), glm::vec3(0.0f, height, wallWidth), mat, glm::vec3(1.0f, 0.0f, 0.0f), scalefactor));
+        }
+        else {
+            res.push_back(GenerateSquare(glm::vec3(p1.x, height, (p1.y + p2.y) / 2), glm::vec3(wallWidth, 0.0f, glm::abs(p1.y - p2.y) + wallWidth), mat, glm::vec3(0.0f, 1.0f, 0.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p1.x + wallWidth / 2, height / 2, (p1.y + p2.y) / 2), glm::vec3(0.0f, height, glm::abs(p1.y - p2.y) + wallWidth), mat, glm::vec3(1.0f, 0.0f, 0.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p1.x - wallWidth / 2, height / 2, (p1.y + p2.y) / 2), glm::vec3(0.0f, height, glm::abs(p1.y - p2.y) + wallWidth), mat, glm::vec3(-1.0f, 0.0f, 0.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p1.x, height / 2, p1.y - wallWidth / 2), glm::vec3(wallWidth, height, 0.0f), mat, glm::vec3(0.0f, 0.0f, -1.0f), scalefactor));
+            res.push_back(GenerateSquare(glm::vec3(p1.x, height / 2, p2.y + wallWidth / 2), glm::vec3(wallWidth, height, 0.0f), mat, glm::vec3(0.0f, 0.0f, 1.0f), scalefactor));
+        }
+    }
+    return res;
 }

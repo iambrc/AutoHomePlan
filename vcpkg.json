@@ -7,6 +7,8 @@
         "assimp",
         "glm",
         "glfw3",
+        "polyclipping",
+        "clipper2",
         {
         "name": "imgui",
         "features": ["glfw-binding", "opengl3-binding"]

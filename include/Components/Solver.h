@@ -4,6 +4,8 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 #include <gurobi_c++.h>
+#include <nlohmann/json.hpp>
+#include <polyclipping/clipper.hpp>
 
 extern std::vector<std::string> show_edges;
 extern std::vector<std::string> show_orientations;
@@ -19,7 +21,7 @@ struct vertex_writer_out {
         double show_w = !vp.size.empty() ? vp.size[1] : -1;
         out << "[label=\"" << vp.label << "\\n"
             << "Size: " << show_l << " " << show_w << "\\n"
-            << "Priority: " << vp.priority << "\\n"
+            //<< "Priority: " << vp.priority << "\\n"
             << "Orientation: " << show_orientations[vp.orientation] << "\", "
             << "shape=rect, style=filled, fillcolor=\"lightblue\", "
             << "width=" << l << ", height=" << w << "]";
@@ -37,7 +39,7 @@ struct vertex_writer_in {
         double show_w = !vp.target_size.empty() ? vp.target_size[1] : -1;
         out << "[label=\"" << vp.label << "\\n"
             << "Size: " << show_l << " " << show_w << "\\n"
-            << "Priority: " << vp.priority << "\\n"
+            //<< "Priority: " << vp.priority << "\\n"
             << "Orientation: " << show_orientations[vp.orientation] << "\", "
             << "shape=rect, style=filled, fillcolor=\"lightblue\", "
             << "width=" << l << ", height=" << w << "]";
@@ -81,11 +83,15 @@ public:
     ~Solver();
 
     void solve();
-    void setSceneGraph();
     void saveGraph();
+    void readSceneGraph(const std::string& path);
+    void reset();
+    SceneGraph getsolution() { return g; }
+    float getboundaryMaxSize();
 
     bool floorplan;
     std::vector<double> hyperparameters;
+    int scalingFactor;
 private:
     bool has_path(const SceneGraph& g, VertexDescriptor start, VertexDescriptor target);
     bool dfs_check_path(const SceneGraph& g, VertexDescriptor u, VertexDescriptor target, EdgeType required_type, std::vector<bool>& visited);

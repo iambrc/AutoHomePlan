@@ -1,0 +1,112 @@
+{
+    "windows": {
+
+    },
+    "doors": {
+
+    },
+    "boundary": {
+        "origin_pos": [0, 0, 0],
+        "size": [1, 1, 1],
+        "points": [
+            [0, 0], [0.8, 0], [0.8, 0.3], [1, 0.3], [1, 1], [0.3, 1], [0.3, 0.6], [0, 0.6]
+        ]
+    },
+    "obstacles": [
+
+    ],
+    "vertices": [
+        {
+            "label": "LivingRoom",
+            "id": 0,
+            "boundary": 0,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.45, 0.55, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.2, 0.2, 0],
+            "orientation": 2
+        },
+        {
+            "label": "BedRoom",
+            "id": 1,
+            "boundary": 3,
+            "on_floor": true,
+            "target_pos": [0.8, 0.8, 0.1],
+            "target_size": [0.4, 0.4, 0.2],
+            "pos_tolerance": [0.15, 0.15, 0],
+            "size_tolerance": [0.15, 0.15, 0],
+            "orientation": 2
+        },
+        {
+            "label": "Kitchen",
+            "id": 2,
+            "boundary": 0,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.3, 0.3, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.1, 0.1, 0],
+            "orientation": 2
+        },
+        {
+            "label": "KidRoom",
+            "id": 3,
+            "boundary": -1,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.3, 0.3, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.1, 0.1, 0],
+            "orientation": 2
+        },
+        {
+            "label": "BathRoom",
+            "id": 4,
+            "boundary": -1,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.2, 0.3, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.1, 0.1, 0],
+            "orientation": 2
+        },
+        {
+            "label": "WorkRoom",
+            "id": 5,
+            "boundary": 7,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.4, 0.3, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.2, 0.15, 0],
+            "orientation": 2
+        }
+    ],
+    "edges": [
+        {
+            "source": 1,
+            "target": 0,
+            "type": 2,
+            "distance": -1
+        },
+        {
+            "source": 2,
+            "target": 0,
+            "type": 0,
+            "distance": -1
+        },
+        {
+            "source": 3,
+            "target": 0,
+            "type": 2,
+            "distance": -1
+        },
+        {
+            "source": 4,
+            "target": 0,
+            "type": 1,
+            "distance": -1
+        }
+    ]
+}

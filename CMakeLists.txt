@@ -25,6 +25,8 @@ find_package(nlohmann_json CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 find_package(glfw3 CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 find_package(imgui CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 find_package(glm CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
+find_package(Clipper2 CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
+find_package(polyclipping CONFIG REQUIRED PATHS CMAKE_PREFIX_PATH)
 
 # set include
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -58,4 +60,4 @@ add_executable(AutoHomePlan ${GUI_SOURCES} ${SOLVER_SOURCES} ${VIEW_SOURCES} ${S
 
 # link libraries
 target_link_libraries(AutoHomePlan PRIVATE ${catkin_LIBRARIES} ${GUROBI_LIBRARIES})
-target_link_libraries(AutoHomePlan PRIVATE assimp::assimp Boost::graph nlohmann_json::nlohmann_json imgui::imgui glm::glm glad glfw OpenGL::GL ImGuiFileDialog)
+target_link_libraries(AutoHomePlan PRIVATE assimp::assimp Boost::graph nlohmann_json::nlohmann_json imgui::imgui glm::glm glad glfw OpenGL::GL ImGuiFileDialog Clipper2::Clipper2 polyclipping::polyclipping)

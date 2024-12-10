@@ -1,10 +1,10 @@
 digraph G {
-0[label="LivingRoom\nSize: 0.45 0.55\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.45, height=0.55];
-1[label="BedRoom\nSize: 0.4 0.4\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.4];
-2[label="Kitchen\nSize: 0.3 0.3\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
-3[label="KidRoom\nSize: 0.3 0.3\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
-4[label="BathRoom\nSize: 0.2 0.3\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.3];
-5[label="WorkRoom\nSize: 0.4 0.3\nPriority: 0\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.3];
+0[label="LivingRoom\nSize: 0.45 0.55\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.45, height=0.55];
+1[label="BedRoom\nSize: 0.4 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.4];
+2[label="Kitchen\nSize: 0.3 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
+3[label="KidRoom\nSize: 0.3 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
+4[label="BathRoom\nSize: 0.2 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.3];
+5[label="WorkRoom\nSize: 0.4 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.3];
 1->0 [label="Front of\n", color="green"];
 2->0 [label="Left of\n", color="red"];
 3->0 [label="Front of\n", color="green"];

@@ -311,8 +311,8 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
         if (!g[*vi].target_size.empty() && g[*vi].target_size[1] > g[*vi].target_size[0])
         {
             if (!g[*vi].target_pos.empty()) {
-                vp1.target_pos = { g[*vi].target_pos[0], g[*vi].target_pos[1] + g[*vi].target_size[1] / 4, g[*vi].target_size[2] };
-                vp2.target_pos = { g[*vi].target_pos[0], g[*vi].target_pos[1] - g[*vi].target_size[1] / 4, g[*vi].target_size[2] };
+                vp1.target_pos = { g[*vi].target_pos[0], g[*vi].target_pos[1] + g[*vi].target_size[1] / 4, g[*vi].target_pos[2] };
+                vp2.target_pos = { g[*vi].target_pos[0], g[*vi].target_pos[1] - g[*vi].target_size[1] / 4, g[*vi].target_pos[2] };
             }
             vp1.target_size = { g[*vi].target_size[0], g[*vi].target_size[1] / 2, g[*vi].target_size[2] };
             vp2.target_size = { g[*vi].target_size[0], g[*vi].target_size[1] / 2, g[*vi].target_size[2] };
@@ -344,7 +344,7 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
             boost::add_edge(v1, v2, EdgeProperties{ -1, {g[*vi].target_size[0] / 2, 0}, -1, FrontOf}, g_split);
 			split_type[g[*vi].id] = 1;
         }
-        // Here we default to the vertical split |
+        // Here we default to the vertical split (vp2|vp1)
         else
         {
             if (!g[*vi].target_size.empty())
@@ -353,8 +353,8 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
                 vp2.target_size = { g[*vi].target_size[0] / 2, g[*vi].target_size[1], g[*vi].target_size[2] };
                 if (!g[*vi].target_pos.empty())
                 {
-                    vp1.target_pos = { g[*vi].target_pos[0] + g[*vi].target_size[0] / 4, g[*vi].target_pos[1], g[*vi].target_size[2] };
-                    vp2.target_pos = { g[*vi].target_pos[0] - g[*vi].target_size[0] / 4, g[*vi].target_pos[1], g[*vi].target_size[2] };
+                    vp1.target_pos = { g[*vi].target_pos[0] + g[*vi].target_size[0] / 4, g[*vi].target_pos[1], g[*vi].target_pos[2] };
+                    vp2.target_pos = { g[*vi].target_pos[0] - g[*vi].target_size[0] / 4, g[*vi].target_pos[1], g[*vi].target_pos[2] };
                 }
             }
             if (!g[*vi].size_tolerance.empty())

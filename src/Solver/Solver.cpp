@@ -9,6 +9,7 @@ std::vector<std::string> show_orientations = { "up", "down", "left", "right", "f
 Solver::Solver() : env(), model(env) {
     // Initialize solver-related data if needed
     hyperparameters = {1, 1, 1, 1};
+	scalingFactor = 3;
 }
 
 Solver::~Solver() {}
@@ -411,7 +412,7 @@ void Solver::optimizeModel()
 {
     try {
         model.set(GRB_DoubleParam_TimeLimit, 100);
-        model.set(GRB_DoubleParam_MIPGap, 0.05);
+        model.set(GRB_DoubleParam_MIPGap, 0.11);
 		model.set(GRB_IntParam_MIPFocus, 1);
         model.set(GRB_IntParam_Method, 2);
         model.set(GRB_DoubleParam_BarConvTol, 1e-4);
@@ -494,52 +495,6 @@ void Solver::optimizeModel()
     }
 }
 
-void Solver::setSceneGraph()
-{
-    floorplan = true;
-    boundary.origin_pos = { 0, 0, 0 };
-    boundary.size = { 1, 1, 1 };
-    boundary.points = { {0, 0}, {0.8, 0}, {0.8, 0.3}, {1, 0.3}, {1, 1}, {0.3, 1}, {0.3, 0.6}, {0, 0.6} };
-    boundary.Orientations = { BACK, RIGHT, BACK, RIGHT, FRONT, LEFT, FRONT, LEFT };
-
-    Obstacles obstacle1, obstacle2;
-    obstacle1.pos = { 0.9, 0.15, 0.5 };
-    obstacle1.size = { 0.2, 0.3, 1 };
-    obstacle2.pos = { 0.15, 0.8, 0.5 };
-    obstacle2.size = { 0.3, 0.4, 1 };
-    obstacles = { obstacle1, obstacle2 };
-
-    auto v1 = add_vertex(VertexProperties{ "LivingRoom", 0, 0, 0, {}, {0.45, 0.55, 1}, {}, {}, {}, {0.2, 0.2, 0}, LEFT, true }, inputGraph);
-    auto v2 = add_vertex(VertexProperties{ "BedRoom", 1, 3, 0, {0.8,0.8,0.5}, {0.4,0.4,1}, {}, {}, {}, {0.15,0.15,0}, LEFT, true }, inputGraph);
-    auto v3 = add_vertex(VertexProperties{ "Kitchen", 2, 0, 0, {}, {0.3,0.3,1}, {}, {}, {}, {0.1,0.1,0}, LEFT, true }, inputGraph);
-    auto v4 = add_vertex(VertexProperties{ "KidRoom", 3, -1, 0, {}, {0.3, 0.3, 1}, {}, {}, {}, {0.1,0.1,0}, LEFT, true }, inputGraph);
-    auto v5 = add_vertex(VertexProperties{ "BathRoom", 4, -1, 0, {}, {0.2, 0.3, 1}, {}, {}, {}, {0.1,0.1,0}, LEFT, true }, inputGraph);
-    auto v6 = add_vertex(VertexProperties{ "WorkRoom", 5, 7, 0, {}, {0.4,0.3,1}, {}, {}, {}, {0.2,0.15,0}, LEFT, true }, inputGraph);
-
-    add_edge(v2, v1, EdgeProperties{ -1, {}, -1, FrontOf }, inputGraph);
-    add_edge(v3, v1, EdgeProperties{ -1, {}, -1, LeftOf }, inputGraph);
-    add_edge(v4, v1, EdgeProperties{ -1, {}, -1, FrontOf }, inputGraph);
-    add_edge(v5, v1, EdgeProperties{ -1, {}, -1, RightOf }, inputGraph);
-
-    // Convert Doors/Windows Constraints to Obstacles
-    int num_doors = doors.size(), num_windows = windows.size();
-    for (int i = 0; i < num_doors + num_windows; ++i) {
-        int idx = i;
-        if (i < num_doors) {
-            Obstacles door_obstacle = { doors[idx].obstacle_pos, doors[idx].obstacle_size };
-            obstacles.push_back(door_obstacle);
-        }
-        else {
-            idx -= num_doors;
-            Obstacles window_obstacle = { windows[idx].obstacle_pos, windows[idx].obstacle_size };
-            obstacles.push_back(window_obstacle);
-        }
-    }
-
-    g = graphProcessor.process(inputGraph, boundary, obstacles);
-	g = graphProcessor.splitGraph2(g, boundary);
-}
-
 void Solver::saveGraph()
 {
     std::ofstream file_in("../../AutoHomePlan/Assets/SceneGraph/graph_in.dot");
@@ -561,79 +516,199 @@ void Solver::saveGraph()
 
 void Solver::solve()
 {
-    setSceneGraph();
+	if (inputGraph.m_vertices.empty()) {
+		std::cout << "Scene Graph is empty!" << std::endl;
+	}
     addConstraints();
     optimizeModel();
     saveGraph();
 }
 
-/*
-    SceneGraph inputGraph;
-    Boundary boundary;
-    boundary.origin_pos = { 0, 0, 0 };
-    boundary.size = { 1, 1, 1 };
-    boundary.points = { {0, 0}, {0.7, 0}, {0.7, 0.3}, {1, 0.3}, {1, 1}, {0, 1} };
-    boundary.Orientations = { BACK, RIGHT, BACK, RIGHT, FRONT, LEFT };
-    Doors door;
-    door.orientation = FRONT;
-    door.pos = { 0.4, 0, 0.4 };
-    door.size = { 0.2, 0, 0.8 };
-    door.obstacle_pos = { 0.4, 0.1, 0.4 };
-    door.obstacle_size = { 0.2, 0.2, 0.8 };
-    Windows window;
-    window.orientation = RIGHT;
-    window.pos = { 0, 0.6, 0.5 };
-    window.size = { 0, 0.2, 0.6 };
-    window.obstacle_pos = { 0.1, 0.6, 0.5 };
-    window.obstacle_size = { 0.2, 0.2, 0.6 };
-    Obstacles obstacle;
-    obstacle.pos = { 0.85, 0.15, 0.5 };
-    obstacle.size = { 0.3, 0.3, 1 };
+void Solver::readSceneGraph(const std::string& path)
+{
+	reset();
+	// Read JSON file
+	std::ifstream file(path);
+    nlohmann::json scene_graph_json;
+    file >> scene_graph_json;
 
-    auto v1 = add_vertex(VertexProperties{ "Bed", 0, 3, 0, {}, {0.4, 0.2, 0.2}, {}, {}, {}, {0.1, 0.1, 0}, LEFT, true }, inputGraph);
-    auto v2 = add_vertex(VertexProperties{ "NightStand1", 1, -1, 0, {}, {0.1,0.1,0.2}, {}, {}, {}, {0.02,0.02,0}, LEFT, true }, inputGraph);
-    auto v3 = add_vertex(VertexProperties{ "NightStand2", 2, -1, 0, {}, {0.1,0.1,0.2}, {}, {}, {}, {0.02,0.02,0}, LEFT, true }, inputGraph);
-    auto v4 = add_vertex(VertexProperties{ "Closer", 3, 4, 0, {}, {0.4, 0.15, 0.7}, {}, {}, {}, {0.05,0.03,0}, BACK, true }, inputGraph);
-    auto v5 = add_vertex(VertexProperties{ "Desk", 4, 5, 0, {}, {0.1, 0.2, 0.3}, {}, {}, {}, {0.02,0.02,0}, UP, true }, inputGraph);
-    auto v6 = add_vertex(VertexProperties{ "Chair", 5, -1, 0, {}, {0.1,0.1,0.15}, {}, {}, {}, {0.02,0.02,0}, LEFT, true }, inputGraph);
-    auto v7 = add_vertex(VertexProperties{ "Airconditioner", 6, 5, 0, {0, 0.6, 0.8}, {0.05, 0.15, 0.05}, {}, {}, {0.05,0.05,0.05}, {0.02,0.02,0.02}, LEFT, false }, inputGraph);
-    auto v8 = add_vertex(VertexProperties{ "Cup", 7, -1, 0, {}, {0.02,0.02,0.02}, {}, {}, {}, {0,0,0}, UP, false }, inputGraph);
+    // Parse JSON to set boundary
+    boundary.origin_pos = scene_graph_json["boundary"]["origin_pos"].get<std::vector<double>>();
+    boundary.size = scene_graph_json["boundary"]["size"].get<std::vector<double>>();
+    boundary.points = scene_graph_json["boundary"]["points"].get<std::vector<std::vector<double>>>();
+	// calculate orientations
+    boundary.Orientations = std::vector<Orientation>(boundary.points.size(), FRONT);
+	for (auto i = 0; i < boundary.points.size(); ++i) {
+        // Get the current edge
+        std::vector<double> p1 = boundary.points[i];
+        std::vector<double> p2 = boundary.points[(i + 1) % boundary.points.size()];
 
-    add_edge(v2, v1, EdgeProperties{ -1, {}, 1, AlignWith }, inputGraph);
-    add_edge(v3, v1, EdgeProperties{ -1, {}, 1, AlignWith }, inputGraph);
-    add_edge(v2, v1, EdgeProperties{ 0, {}, -1, FrontOf }, inputGraph);
-    add_edge(v3, v1, EdgeProperties{ 0, {}, -1, Behind }, inputGraph);
-    add_edge(v4, v1, EdgeProperties{ 0.2, {}, -1, LeftOf }, inputGraph);
-    add_edge(v5, v4, EdgeProperties{ 0.2, {}, -1, Behind }, inputGraph);
-    add_edge(v6, v5, EdgeProperties{ -1, {0.04, 0.04}, -1, CloseBy }, inputGraph);
-    add_edge(v6, v5, EdgeProperties{ 0.05, {}, -1, RightOf }, inputGraph);
-    add_edge(v8, v5, EdgeProperties{ 0, {}, -1, Above }, inputGraph);
-    add_edge(v8, v5, EdgeProperties{ -1, {}, 4, AlignWith }, inputGraph);
-*/
+        // Calculate direction vector
+        std::vector<double> direction = {p2[0] - p1[0], p2[1] - p1[1]};
 
-/*
-    SceneGraph inputGraph;
-    Boundary boundary;
-    boundary.origin_pos = { 0, 0, 0 };
-    boundary.size = { 1, 1, 1 };
-    boundary.points = { {0, 0}, {0.7, 0}, {0.7, 0.3}, {1, 0.3}, {1, 1}, {0.4, 1}, {0.4, 0.7}, {0, 0.7} };
-    boundary.Orientations = { BACK, RIGHT, BACK, RIGHT, FRONT, LEFT, FRONT, LEFT };
+        // Determine normal vector (rotate direction by 90 degrees)
+        std::vector<double> normal = {direction[1], -direction[0]};
 
-    Obstacles obstacle1, obstacle2;
-    obstacle1.pos = { 0.85, 0.15, 0.5 };
-    obstacle1.size = { 0.3, 0.3, 1 };
-    obstacle2.pos = { 0.2, 0.85, 0.5 };
-    obstacle2.size = { 0.4, 0.3, 1 };
+        // Determine orientation
+        if (normal[0] > 0) {
+            boundary.Orientations[i] = RIGHT;
+        } else if (normal[0] < 0) {
+            boundary.Orientations[i] = LEFT;
+        } else if (normal[1] > 0) {
+            boundary.Orientations[i] = FRONT;
+        } else {
+            boundary.Orientations[i] = BACK;
+        }
+    }
 
-    auto v1 = add_vertex(VertexProperties{ "LivingRoom", 0, 0, 0, {}, {0.5, 0.4, 1}, {}, {}, {}, {0.2, 0.2, 0}, LEFT, true }, inputGraph);
-    auto v2 = add_vertex(VertexProperties{ "BedRoom", 1, 3, 0, {0.8,0.8,0.5}, {0.3,0.3,1}, {}, {}, {}, {0.15,0.15,0}, LEFT, true }, inputGraph);
-    auto v3 = add_vertex(VertexProperties{ "Kitchen", 2, 1, 0, {}, {0.2,0.3,1}, {}, {}, {}, {0.1,0.15,0}, LEFT, true }, inputGraph);
-    auto v4 = add_vertex(VertexProperties{ "KidRoom", 3, -1, 0, {}, {0.25, 0.25, 1}, {}, {}, {}, {0.125,0.125,0}, LEFT, true }, inputGraph);
-    auto v5 = add_vertex(VertexProperties{ "BathRoom", 4, -1, 0, {}, {0.2, 0.2, 1}, {}, {}, {}, {0.1,0.1,0}, LEFT, true }, inputGraph);
-    auto v6 = add_vertex(VertexProperties{ "WorkRoom", 5, -1, 0, {}, {0.4,0.3,1}, {}, {}, {}, {0.2,0.15,0}, LEFT, true }, inputGraph);
+    // set obstacles from boundary and doors/windows
+	for (const auto& door : scene_graph_json["doors"]) {
+		Doors d;
+		d.orientation = door["orientation"];
+		d.pos = door["pos"].get<std::vector<double>>();
+		d.size = door["size"].get<std::vector<double>>();
+		doors.push_back(d);
+		Obstacles door_obstacle;
+		switch (d.orientation) {
+		case FRONT:
+			door_obstacle.pos = {d.pos[0], d.pos[1] - d.size[0] / 2, d.pos[2]};
+			door_obstacle.size = {d.size[0], d.size[0], d.size[2]};
+			break;
+		case BACK:
+			door_obstacle.pos = {d.pos[0], d.pos[1] + d.size[0] / 2, d.pos[2]};
+			door_obstacle.size = {d.size[0], d.size[0], d.size[2]};
+			break;
+		case LEFT:
+			door_obstacle.pos = {d.pos[0] + d.size[1] / 2, d.pos[1], d.pos[2]};
+			door_obstacle.size = {d.size[1], d.size[1], d.size[2]};
+			break;
+		case RIGHT:
+			door_obstacle.pos = {d.pos[0] - d.size[1] / 2, d.pos[1], d.pos[2]};
+			door_obstacle.size = {d.size[1], d.size[1], d.size[2]};
+			break;
+		default:break;
+		}
+		obstacles.push_back(door_obstacle);
+	}
+	for (const auto& window : scene_graph_json["windows"]) {
+		Windows w;
+		w.orientation = window["orientation"];
+		w.pos = window["pos"].get<std::vector<double>>();
+		w.size = window["size"].get<std::vector<double>>();
+		windows.push_back(w);
+		Obstacles window_obstacle;
+		switch (w.orientation) {
+		case FRONT:
+			window_obstacle.pos = {w.pos[0], w.pos[1] - w.size[0] / 2, w.pos[2]};
+			window_obstacle.size = {w.size[0], w.size[0], w.size[2]};
+			break;
+		case BACK:
+			window_obstacle.pos = {w.pos[0], w.pos[1] + w.size[0] / 2, w.pos[2]};
+			window_obstacle.size = {w.size[0], w.size[0], w.size[2]};
+			break;
+		case LEFT:
+			window_obstacle.pos = {w.pos[0] + w.size[1] / 2, w.pos[1], w.pos[2]};
+			window_obstacle.size = {w.size[1], w.size[1], w.size[2]};
+			break;
+		case RIGHT:
+			window_obstacle.pos = {w.pos[0] - w.size[1] / 2, w.pos[1], w.pos[2]};
+			window_obstacle.size = {w.size[1], w.size[1], w.size[2]};
+			break;
+		default:break;
+		}
+		obstacles.push_back(window_obstacle);
+	}
+    for (const auto& obs : scene_graph_json["obstacles"]) {
+        Obstacles obstacle;
+        obstacle.pos = obs["pos"].get<std::vector<double>>();
+        obstacle.size = obs["size"].get<std::vector<double>>();
+        obstacles.push_back(obstacle);
+    }
+	// set obstacles from boundary
+	ClipperLib::Path boundary_path, bounding_box;
+	bounding_box << ClipperLib::IntPoint(boundary.origin_pos[0] * std::pow(10, scalingFactor), boundary.origin_pos[1] * std::pow(10, scalingFactor))
+				 << ClipperLib::IntPoint((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor), boundary.origin_pos[1] * std::pow(10, scalingFactor))
+				 << ClipperLib::IntPoint((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor), (boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor))
+				 << ClipperLib::IntPoint(boundary.origin_pos[0] * std::pow(10, scalingFactor), (boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor));
+	for (const auto& point : boundary.points) {
+		boundary_path.push_back({ (int)(point[0] * std::pow(10, scalingFactor)), (int)(point[1] * std::pow(10, scalingFactor)) });
+	}
+	ClipperLib::Clipper clipper;
+    clipper.AddPath(bounding_box, ClipperLib::ptSubject, true);
+    clipper.AddPath(boundary_path, ClipperLib::ptClip, true);
+    ClipperLib::Paths solution;
+    clipper.Execute(ClipperLib::ctDifference, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+	for (const auto& path : solution) {
+        Obstacles ob_from_boundary;
+		double minX = std::min({path[0].X, path[1].X, path[2].X, path[3].X});
+		double maxX = std::max({path[0].X, path[1].X, path[2].X, path[3].X});
+		double minY = std::min({path[0].Y, path[1].Y, path[2].Y, path[3].Y});
+		double maxY = std::max({path[0].Y, path[1].Y, path[2].Y, path[3].Y});
+		ob_from_boundary.pos = {(minX + maxX) / 2.0 / std::pow(10, scalingFactor), (minY + maxY)/ 2.0 / std::pow(10, scalingFactor), boundary.size[2] / 2.0};
+		ob_from_boundary.size = {(maxX - minX) / std::pow(10, scalingFactor), (maxY - minY)/ std::pow(10, scalingFactor), boundary.size[2]};
+		obstacles.push_back(ob_from_boundary);
+    }
+    // Parse JSON to set vertices
+    for (const auto& vertex : scene_graph_json["vertices"]) {
+        VertexProperties vp;
+        vp.label = vertex["label"];
+        vp.id = vertex["id"];
+        vp.boundary = vertex["boundary"];
+        vp.on_floor = vertex["on_floor"];
+        vp.target_pos = vertex["target_pos"].get<std::vector<double>>();
+        vp.target_size = vertex["target_size"].get<std::vector<double>>();
+		vp.orientation = vertex["orientation"];
+		vp.size_tolerance = {};
+		vp.pos_tolerance = {};
+		vp.priority = 0;
+		if (!vp.target_size.empty()) {
+			vp.size_tolerance = vertex["size_tolerance"].get<std::vector<double>>();
+		}
+		if (!vp.target_pos.empty()) {
+			vp.pos_tolerance = vertex["pos_tolerance"].get<std::vector<double>>();
+		}
+        auto v = add_vertex(vp, inputGraph);
+    }
 
-    add_edge(v2, v1, EdgeProperties{ -1, {}, -1, RightOf }, inputGraph);
-    add_edge(v3, v1, EdgeProperties{ -1, {}, -1, RightOf }, inputGraph);
-    add_edge(v4, v1, EdgeProperties{ -1, {}, -1, FrontOf }, inputGraph);
-    add_edge(v6, v1, EdgeProperties{ -1, {}, -1, FrontOf }, inputGraph);
-*/
+    // Parse JSON to set edges
+    for (const auto& edge : scene_graph_json["edges"]) {
+        EdgeProperties ep;
+        ep.type = edge["type"];
+		if (ep.type == AlignWith) {
+			ep.align_edge = edge["align_edge"];
+			ep.distance = -1;
+			ep.closeby_tolerance = {};
+		}
+		else if (ep.type == CloseBy) {
+			ep.closeby_tolerance = edge["closeby_tolerance"].get<std::vector<double>>();
+			ep.distance = -1;
+			ep.align_edge = -1;
+		}
+		else {
+			ep.distance = edge["distance"];
+			ep.align_edge = -1;
+			ep.closeby_tolerance = {};
+		}
+        auto source = vertex(edge["source"], inputGraph);
+        auto target = vertex(edge["target"], inputGraph);
+        add_edge(source, target, ep, inputGraph);
+    }
+
+    g = graphProcessor.process(inputGraph, boundary, obstacles);
+    g = graphProcessor.splitGraph2(g, boundary);
+}
+
+void Solver::reset()
+{
+	inputGraph.clear();
+	g.clear();
+	boundary = Boundary();
+	obstacles.clear();
+	doors.clear();
+	windows.clear();
+}
+
+float Solver::getboundaryMaxSize()
+{
+	return std::max(boundary.size[0], std::max(boundary.size[1], boundary.size[2]));
+}

@@ -44,6 +44,7 @@ private:
 
 
     bool flag_open_file_dialog_ = false; // Flag to open file dialog.
+    bool flag_open_graph_dialog_ = false;
     bool show_context_menu_ = false;      // Flag to show the context menu.
     bool is_context_menu_open_ = false;   // Flag to indicate if the context menu is open.
     bool model_selected_ = false;         // Flag to indicate if a model is selected.

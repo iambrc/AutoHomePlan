@@ -40,6 +40,7 @@ Window::Window(const std::string& window_name) : name_(window_name)
     }
 
     glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_CULL_FACE);
     //scene_viewer_.loadModel("D:\\CG-research-Project\\AutoHomePlan\\AutoHomePlan\\Assets\\Model\\sphere.obj");
     //glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
@@ -100,6 +101,8 @@ void Window::BuildUI()
     
     if (ImGui::Begin("Setting Solver"))
     {
+        ImGui::SliderInt("Scaling Factor for process obstacles(10^n)", &solver_.scalingFactor, 1, 10);
+
         double min_value = 0.0;
         double max_value = 1.0;
         ImGui::Checkbox("Floor Plan", &solver_.floorplan);
@@ -108,9 +111,14 @@ void Window::BuildUI()
         ImGui::SliderScalar("Position Error", ImGuiDataType_Double, &solver_.hyperparameters[2], &min_value, &max_value);
         ImGui::SliderScalar("Adjacency Error", ImGuiDataType_Double, &solver_.hyperparameters[3], &min_value, &max_value);
 
+        ImGui::Spacing();
+        ImGui::SliderFloat("Wall Width(x percentage of boundary size)", &scene_viewer_.wallWidth, 0.0f, 1.0f);
+
         if (ImGui::Button("Solve"))
         {
             solver_.solve();
+            if (solver_.floorplan)
+                scene_viewer_.setupRooms(solver_.getsolution(), solver_.getboundaryMaxSize());
         }
     }
     ImGui::End();
@@ -129,9 +137,13 @@ void Window::BuildUI()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Add Object"))
+            if (ImGui::MenuItem("Import Object"))
             {
                 flag_open_file_dialog_ = true;
+            }
+            if (ImGui::MenuItem("Import SceneGraph"))
+            {
+                flag_open_graph_dialog_ = true;
             }
             ImGui::EndMenu();
         }
@@ -152,11 +164,27 @@ void Window::BuildUI()
             flag_open_file_dialog_ = false;
         }
     }
+    if (flag_open_graph_dialog_)
+    {
+        IGFD::FileDialogConfig config; config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".json", config);
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                solver_.readSceneGraph(filePathName);
+            }
+            ImGuiFileDialog::Instance()->Close();
+            flag_open_graph_dialog_ = false;
+        }
+    }
 }
 
 void Window::Render()
 {
     ImGuiIO& io = ImGui::GetIO();
+    scene_viewer_.renderOtherMesh(camera.GetViewMatrix(), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y), camera.getPosition());
     scene_viewer_.renderModel(camera.GetViewMatrix(), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y), camera.getPosition());
     scene_viewer_.rendersky(glm::mat4(glm::mat3(camera.GetViewMatrix())), camera.GetProjectionMatrix(io.DisplaySize.x, io.DisplaySize.y));
 }

@@ -15,12 +15,12 @@ struct Obstacles {
 };
 
 struct Doors {
-	std::vector<double> pos, size, obstacle_pos, obstacle_size;
+	std::vector<double> pos, size;
 	// Notice that orientation indicates the direction of doors'/windows' outward normal direction
 	Orientation orientation;
 };
 
 struct Windows {
-	std::vector<double> pos, size, obstacle_pos, obstacle_size;
+	std::vector<double> pos, size;
 	Orientation orientation;
 };
