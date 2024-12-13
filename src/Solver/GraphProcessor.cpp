@@ -1,4 +1,5 @@
 #include "Components/GraphProcessor.h"
+#include <iostream>
 
 GraphProcessor::GraphProcessor() {
     edgetypes = { LeftOf, RightOf, FrontOf, Behind, Above, Under, CloseBy, AlignWith };
@@ -149,10 +150,16 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
 			edges_to_reverse.push_back(std::make_pair(v1, v2));
 			new_edge_properties.push_back(ep);
         }
-			
     }
     for (size_t i = 0; i < edges_to_reverse.size(); ++i) {
-        boost::remove_edge(edges_to_reverse[i].first, edges_to_reverse[i].second, outputGraph);
+        boost::graph_traits<SceneGraph>::out_edge_iterator oe_i, oe_end;
+        for (boost::tie(oe_i, oe_end) = boost::out_edges(edges_to_reverse[i].first, outputGraph); oe_i != oe_end; ++oe_i) {
+            if (boost::target(*oe_i, outputGraph) == edges_to_reverse[i].second && outputGraph[*oe_i].type != AlignWith && outputGraph[*oe_i].type != CloseBy) { 
+                boost::remove_edge(*oe_i, outputGraph);
+                break;
+            }
+        }
+        //boost::remove_edge(edges_to_reverse[i].first, edges_to_reverse[i].second, outputGraph);
         boost::add_edge(edges_to_reverse[i].second, edges_to_reverse[i].first, new_edge_properties[i], outputGraph);
     }
     for (EdgeType edgetype : {LeftOf, RightOf, FrontOf, Behind, Above, Under}) {
@@ -190,6 +197,7 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
 
 SceneGraph GraphProcessor::splitGraph4(const SceneGraph& g, const Boundary& boundary)
 {
+    // Split the graph into four parts not completely implemented, Split into 2 parts get better results.
     SceneGraph g_split = {};
 	auto num_vertices = boost::num_vertices(g), num_edges = boost::num_edges(g);
     std::map<int, VertexDescriptor> id_to_vertex;

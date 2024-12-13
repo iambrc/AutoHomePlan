@@ -30,7 +30,7 @@ Window::Window(const std::string& window_name) : name_(window_name)
         throw std::runtime_error("Failed to initialize GLAD!");
     }
 
-    scene_viewer_.initshader("../../AutoHomePlan/src/Shaders/basic.vs", "../../AutoHomePlan/src/Shaders/basic.fs");
+    scene_viewer_.initshader("../../../src/Shaders/basic.vs", "../../../src/Shaders/basic.fs");
 
     if (!init_gui()) {
         // Initialize the GUI and check for failure
@@ -40,9 +40,6 @@ Window::Window(const std::string& window_name) : name_(window_name)
     }
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
-    //scene_viewer_.loadModel("D:\\CG-research-Project\\AutoHomePlan\\AutoHomePlan\\Assets\\Model\\sphere.obj");
-    //glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 Window::~Window()
@@ -105,20 +102,21 @@ void Window::BuildUI()
 
         double min_value = 0.0;
         double max_value = 1.0;
-        ImGui::Checkbox("Floor Plan", &solver_.floorplan);
         ImGui::SliderScalar("Area Error", ImGuiDataType_Double, &solver_.hyperparameters[0], &min_value, &max_value);
         ImGui::SliderScalar("Size Error", ImGuiDataType_Double, &solver_.hyperparameters[1], &min_value, &max_value);
         ImGui::SliderScalar("Position Error", ImGuiDataType_Double, &solver_.hyperparameters[2], &min_value, &max_value);
         ImGui::SliderScalar("Adjacency Error", ImGuiDataType_Double, &solver_.hyperparameters[3], &min_value, &max_value);
 
         ImGui::Spacing();
-        ImGui::SliderFloat("Wall Width(x percentage of boundary size)", &scene_viewer_.wallWidth, 0.0f, 1.0f);
+        ImGui::SliderFloat("Wall Width(x percentage of boundary size)", &scene_viewer_.wallWidth, 0.0f, 0.1f);
 
         if (ImGui::Button("Solve"))
         {
             solver_.solve();
             if (solver_.floorplan)
                 scene_viewer_.setupRooms(solver_.getsolution(), solver_.getboundaryMaxSize());
+            else
+                scene_viewer_.setupOneRoom(solver_.getsolution(), solver_.getboundary());
         }
     }
     ImGui::End();
@@ -173,7 +171,7 @@ void Window::BuildUI()
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                solver_.readSceneGraph(filePathName);
+                solver_.readSceneGraph(filePathName, scene_viewer_.wallWidth);
             }
             ImGuiFileDialog::Instance()->Close();
             flag_open_graph_dialog_ = false;
@@ -243,7 +241,6 @@ void Window::render()
     glfwGetFramebufferSize(window_, &width_, &height_);
     glViewport(0, 0, width_, height_);
     glClearColor(0.35f, 0.45f, 0.50f, 1.00f);
-    //glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Render();

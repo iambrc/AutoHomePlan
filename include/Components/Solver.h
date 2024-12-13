@@ -84,10 +84,11 @@ public:
 
     void solve();
     void saveGraph();
-    void readSceneGraph(const std::string& path);
+    void readSceneGraph(const std::string& path, float wallwidth);
     void reset();
     SceneGraph getsolution() { return g; }
     float getboundaryMaxSize();
+    Boundary getboundary() { return boundary; }
 
     bool floorplan;
     std::vector<double> hyperparameters;

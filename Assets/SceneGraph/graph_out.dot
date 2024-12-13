@@ -1,22 +1,22 @@
 digraph G {
-0[label="LivingRoom\nSize: 0.5 0.323333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.5, height=0.323333];
-1[label="LivingRoom\nSize: 0.5 0.323333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.5, height=0.323333];
-2[label="BedRoom\nSize: 0.2 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.4];
-3[label="BedRoom\nSize: 0.2 0.353333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.353333];
-4[label="Kitchen\nSize: 0.149975 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.149975, height=0.3];
-5[label="Kitchen\nSize: 0.150025 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.150025, height=0.3];
-6[label="KidRoom\nSize: 0.15 0.353333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.15, height=0.353333];
-7[label="KidRoom\nSize: 0.15 0.353333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.15, height=0.353333];
-8[label="BathRoom\nSize: 0.2 0.15\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.15];
-9[label="BathRoom\nSize: 0.2 0.15\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.15];
-10[label="WorkRoom\nSize: 0.150025 0.3\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.150025, height=0.3];
-11[label="WorkRoom\nSize: 0.149975 0.3\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.149975, height=0.3];
+0[label="LivingRoom\nSize: 0.563229 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.563229, height=0.3];
+1[label="LivingRoom\nSize: 0.419164 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.419164, height=0.3];
+2[label="BedRoom\nSize: 0.199996 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.199996, height=0.4];
+3[label="BedRoom\nSize: 0.200002 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.200002, height=0.4];
+4[label="Kitchen\nSize: 0.121303 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.121303, height=0.3];
+5[label="Kitchen\nSize: 0.121304 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.121304, height=0.3];
+6[label="KidRoom\nSize: 0.150001 0.399999\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.150001, height=0.399999];
+7[label="KidRoom\nSize: 0.150001 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.150001, height=0.4];
+8[label="BathRoom\nSize: 0.13823 0.150009\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.13823, height=0.150009];
+9[label="BathRoom\nSize: 0.13823 0.149991\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.13823, height=0.149991];
+10[label="WorkRoom\nSize: 0.218385 0.3\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.218385, height=0.3];
+11[label="WorkRoom\nSize: 0.218385 0.3\nOrientation: right", shape=rect, style=filled, fillcolor="lightblue", width=0.218385, height=0.3];
 0->1 [label="Front of\n", color="green"];
-0->8 [label="Left of\n", color="red"];
+1->8 [label="Left of\n", color="red"];
 3->2 [label="Left of\n", color="red"];
 5->4 [label="Left of\n", color="red"];
-6->0 [label="Front of\n", color="green"];
 7->6 [label="Left of\n", color="red"];
+7->0 [label="Front of\n", color="green"];
 8->9 [label="Front of\n", color="green"];
 11->10 [label="Left of\n", color="red"];
 }

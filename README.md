@@ -1,6 +1,21 @@
 # AutoHomePlan
 
-This is my graduation project for USTC2024. 
+**This is my graduation project for USTC2024.**
+
+<div style="text-align: center; font-size: 20px; font-weight: bold;">
+Abstract
+</div>
+
+Constraint-based 3D scene layout generation: Using large language models and the Gurobi solver to model floor plan generation and interior layout design as a mixed-integer quadratic programming problem with scene graphs as input.
+
+
+Current Result(The program provides a simple preview and visualization, and we will use software like Blender to achieve more detailed visualizations in the future.):
+
+![FloorPlan](Assets/Figures/floorplan.png)
+
+
+![Interior](Assets/Figures/interior.png)
+
 
 ## Getting Started
 
@@ -20,10 +35,18 @@ git submodule update --init --recursive
 ```
 ### 3. Build
 
-First, use vcpkg to install the dependencies, and then complete the configuration using cmake.
+First, use vcpkg to install the dependencies. After vcpkg installation is complete, you will see a vcpkg_installed folder under the project directory, containing CMake configuration files and other related content.
 ```
 vcpkg install
 ```
+
+Generating project files is straightforward:
+```
+cmake -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_APPLOCAL_DEPS=ON -DCMAKE_BUILD_TYPE=Release -B build\Release -S .
+cmake --build build/Release --config Release
+```
+You can also change *Release* to *Debug*.
+
 
 ### 4.Visualization of scene graphs
 
@@ -37,10 +60,12 @@ dot -Tpng input.dot -o output.png
 
 
 ## Assets
-3D assets are from [Free3D](https://free3d.com/).
+3D assets are from [Free3D](https://free3d.com/). 
+
+**The visualization of 3D assets has not yet been implemented. We use a rectangular prism to represent the bounding box of the object.**
 
 ## Other Information
 TODO
 
 ## Acknowledgement
-The framework of this project partially references [2024 Computer Graphics course assignment](https://github.com/USTC-CG/USTC_CG_24).
+The framework of this project partially references [2024 Computer Graphics course assignment](https://github.com/USTC-CG/USTC_CG_24) and [Learn OpenGL](https://learnopengl-cn.github.io/intro/).

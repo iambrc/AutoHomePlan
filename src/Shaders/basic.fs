@@ -8,6 +8,7 @@ in vec2 TexCoords;
 uniform vec3 ambient;
 uniform vec3 diffuse;
 uniform vec3 specular;
+uniform float shininess;
 uniform bool hasTexture;
 
 uniform vec3 viewPos;
@@ -31,7 +32,7 @@ void main()
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuseLight = diff * diffuse * lightColor;
 
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
     vec3 specularLight = spec * specular * lightColor;
 
     vec3 texColor = hasTexture ? texture(texture_diffuse1, TexCoords).xyz : vec3(1.0);

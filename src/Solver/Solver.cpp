@@ -411,8 +411,11 @@ void Solver::addConstraints()
 void Solver::optimizeModel()
 {
     try {
-        model.set(GRB_DoubleParam_TimeLimit, 100);
-        model.set(GRB_DoubleParam_MIPGap, 0.11);
+        model.set(GRB_DoubleParam_TimeLimit, 10);
+		if (floorplan)
+        	model.set(GRB_DoubleParam_MIPGap, 0.11);
+		else
+			model.set(GRB_DoubleParam_MIPGap, 0.01);
 		model.set(GRB_IntParam_MIPFocus, 1);
         model.set(GRB_IntParam_Method, 2);
         model.set(GRB_DoubleParam_BarConvTol, 1e-4);
@@ -497,7 +500,7 @@ void Solver::optimizeModel()
 
 void Solver::saveGraph()
 {
-    std::ofstream file_in("../../AutoHomePlan/Assets/SceneGraph/graph_in.dot");
+    std::ofstream file_in("../../../Assets/SceneGraph/graph_in.dot");
     if (!file_in.is_open()) {
         std::cerr << "Failed to open file for writing: graph_in.dot" << std::endl;
     } else {
@@ -505,7 +508,7 @@ void Solver::saveGraph()
             edge_writer<SceneGraph::edge_descriptor>(inputGraph));
     }
     
-    std::ofstream file_out("../../AutoHomePlan/Assets/SceneGraph/graph_out.dot");
+    std::ofstream file_out("../../../Assets/SceneGraph/graph_out.dot");
     if (!file_out.is_open()) {
         std::cerr << "Failed to open file for writing: graph_out.dot" << std::endl;
     } else {
@@ -519,12 +522,14 @@ void Solver::solve()
 	if (inputGraph.m_vertices.empty()) {
 		std::cout << "Scene Graph is empty!" << std::endl;
 	}
-    addConstraints();
-    optimizeModel();
-    saveGraph();
+	else {
+		addConstraints();
+    	optimizeModel();
+    	saveGraph();
+	}
 }
 
-void Solver::readSceneGraph(const std::string& path)
+void Solver::readSceneGraph(const std::string& path, float wallwidth)
 {
 	reset();
 	// Read JSON file
@@ -532,12 +537,45 @@ void Solver::readSceneGraph(const std::string& path)
     nlohmann::json scene_graph_json;
     file >> scene_graph_json;
 
+	floorplan = scene_graph_json["floorplan"];
+
     // Parse JSON to set boundary
     boundary.origin_pos = scene_graph_json["boundary"]["origin_pos"].get<std::vector<double>>();
     boundary.size = scene_graph_json["boundary"]["size"].get<std::vector<double>>();
     boundary.points = scene_graph_json["boundary"]["points"].get<std::vector<std::vector<double>>>();
 	// calculate orientations
     boundary.Orientations = std::vector<Orientation>(boundary.points.size(), FRONT);
+	
+	if (!floorplan)
+	{
+		boundary.origin_pos[0] += wallwidth / 2; boundary.origin_pos[1] += wallwidth / 2;
+		boundary.size[0] -= wallwidth; boundary.size[1] -= wallwidth;
+		ClipperLib::Path boundaryp;
+		ClipperLib::Paths solu;
+		for (const auto& point : boundary.points) {
+			boundaryp.push_back({ (int)(point[0] * std::pow(10, scalingFactor)), (int)(point[1] * std::pow(10, scalingFactor)) });
+		}
+		ClipperLib::ClipperOffset co;
+		co.AddPath(boundaryp, ClipperLib::jtMiter, ClipperLib::etClosedPolygon);
+		co.Execute(solu, -(wallwidth / 2) * std::pow(10, scalingFactor));
+		std::vector<std::vector<double>> new_points = {};
+		for (const auto& point : solu[0]) {
+			new_points.push_back({point.X / std::pow(10, scalingFactor), point.Y / std::pow(10, scalingFactor)});
+		}
+		int idx_ = 0;
+		for (auto i = 0; i < new_points.size(); ++i)
+		{
+			if (std::fabs(std::fabs(new_points[i][0] - boundary.points[0][0]) - wallwidth / 2) < 1e-3 
+			&& std::fabs(std::fabs(new_points[i][1] - boundary.points[0][1]) - wallwidth / 2) < 1e-3)
+			{
+				idx_ = i;
+				break;
+			}
+		}
+		for (auto i = 0; i < new_points.size(); ++i)
+			boundary.points[i] = new_points[(i + idx_) % new_points.size()];
+	}
+	
 	for (auto i = 0; i < boundary.points.size(); ++i) {
         // Get the current edge
         std::vector<double> p1 = boundary.points[i];
@@ -626,10 +664,18 @@ void Solver::readSceneGraph(const std::string& path)
     }
 	// set obstacles from boundary
 	ClipperLib::Path boundary_path, bounding_box;
-	bounding_box << ClipperLib::IntPoint(boundary.origin_pos[0] * std::pow(10, scalingFactor), boundary.origin_pos[1] * std::pow(10, scalingFactor))
-				 << ClipperLib::IntPoint((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor), boundary.origin_pos[1] * std::pow(10, scalingFactor))
-				 << ClipperLib::IntPoint((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor), (boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor))
-				 << ClipperLib::IntPoint(boundary.origin_pos[0] * std::pow(10, scalingFactor), (boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor));
+	bounding_box << ClipperLib::IntPoint(
+    	std::round(boundary.origin_pos[0] * std::pow(10, scalingFactor)),
+    	std::round(boundary.origin_pos[1] * std::pow(10, scalingFactor)))
+		<< ClipperLib::IntPoint(
+    	std::round((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor)),
+    	std::round(boundary.origin_pos[1] * std::pow(10, scalingFactor)))
+		<< ClipperLib::IntPoint(
+		std::round((boundary.origin_pos[0] + boundary.size[0]) * std::pow(10, scalingFactor)),
+		std::round((boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor)))
+		<< ClipperLib::IntPoint(
+		std::round(boundary.origin_pos[0] * std::pow(10, scalingFactor)),
+		std::round((boundary.origin_pos[1] + boundary.size[1]) * std::pow(10, scalingFactor)));
 	for (const auto& point : boundary.points) {
 		boundary_path.push_back({ (int)(point[0] * std::pow(10, scalingFactor)), (int)(point[1] * std::pow(10, scalingFactor)) });
 	}
@@ -695,7 +741,8 @@ void Solver::readSceneGraph(const std::string& path)
     }
 
     g = graphProcessor.process(inputGraph, boundary, obstacles);
-    g = graphProcessor.splitGraph2(g, boundary);
+	if (floorplan)
+    	g = graphProcessor.splitGraph2(g, boundary);
 }
 
 void Solver::reset()

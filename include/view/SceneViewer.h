@@ -2,6 +2,7 @@
 
 #include "Model.h"
 #include "Components/SceneGraph.h"
+#include "Components/InputScene.h"
 #include <GLFW/glfw3.h>
 
 class SceneViewer {
@@ -21,6 +22,7 @@ public:
     void DeleteSelectedModel();
 
     void setupRooms(SceneGraph g, float bmsize);
+    void setupOneRoom(SceneGraph g, Boundary b);
 
     glm::vec3 lightPos;
     glm::vec3 lightColor;
@@ -32,7 +34,9 @@ private:
 
     Mesh GenerateSquare(const glm::vec3& pos, const glm::vec3& size, Material mat, glm::vec3 normal,float scalefactor);
     Mesh GenerateFloor(std::vector<double> pos, std::vector<double> size, float scalefactor);
-    std::vector<Mesh> GenerateWall(std::vector<double> pos1, std::vector<double> size1, std::vector<double> pos2, std::vector<double> size2, float scalefactor);
+    std::vector<Mesh> GenerateWall(std::vector<std::vector<double>> points, float height, float scalefactor);
+
+    Mesh GenerateCube(const glm::vec3& pos, const glm::vec3& size, Material mat, float scalefactor);
 
     std::vector<Model> models;
     std::vector<Mesh> othermeshes;
