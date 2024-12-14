@@ -63,6 +63,14 @@ void Model::loadModel(std::string const &path)
     directory = path.substr(0, path.find_last_of('/'));
     // process ASSIMP's root node recursively
     processNode(scene->mRootNode, scene);
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[i];
+        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+            aiVector3D vertex = mesh->mVertices[j];
+            minBounds = glm::min(minBounds, glm::vec3(vertex.x, vertex.y, vertex.z));
+            maxBounds = glm::max(maxBounds, glm::vec3(vertex.x, vertex.y, vertex.z));
+        }
+    }
     modelmatrix = glm::translate(modelmatrix, -(minBounds + maxBounds) / 2.0f);
     float scale = 2.0f / glm::max(maxBounds.x - minBounds.x, glm::max(maxBounds.y - minBounds.y, maxBounds.z - minBounds.z));
     modelmatrix = glm::scale(modelmatrix, glm::vec3(scale));
@@ -102,13 +110,6 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
-
-        if (vector.x < minBounds.x) minBounds.x = vector.x;
-        if (vector.y < minBounds.y) minBounds.y = vector.y;
-        if (vector.z < minBounds.z) minBounds.z = vector.z;
-        if (vector.x > maxBounds.x) maxBounds.x = vector.x;
-        if (vector.y > maxBounds.y) maxBounds.y = vector.y;
-        if (vector.z > maxBounds.z) maxBounds.z = vector.z;
 
         // normals
         if (mesh->HasNormals())

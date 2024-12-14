@@ -61,3 +61,7 @@ add_executable(AutoHomePlan ${GUI_SOURCES} ${SOLVER_SOURCES} ${VIEW_SOURCES} ${S
 # link libraries
 target_link_libraries(AutoHomePlan PRIVATE ${catkin_LIBRARIES} ${GUROBI_LIBRARIES})
 target_link_libraries(AutoHomePlan PRIVATE assimp::assimp Boost::graph nlohmann_json::nlohmann_json imgui::imgui glm::glm glad glfw OpenGL::GL ImGuiFileDialog Clipper2::Clipper2 polyclipping::polyclipping)
+
+set(SHADER_DIR "${CMAKE_SOURCE_DIR}/src/Shaders")
+set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/Assets")
+add_definitions(-DSHADER_DIR="${SHADER_DIR}" -DASSETS_DIR="${ASSETS_DIR}")

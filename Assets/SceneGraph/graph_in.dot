@@ -1,12 +1,19 @@
 digraph G {
-0[label="LivingRoom\nSize: 0.45 0.55\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.45, height=0.55];
-1[label="BedRoom\nSize: 0.4 0.4\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.4];
-2[label="Kitchen\nSize: 0.3 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
-3[label="KidRoom\nSize: 0.3 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.3, height=0.3];
-4[label="BathRoom\nSize: 0.2 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.2, height=0.3];
-5[label="WorkRoom\nSize: 0.4 0.3\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.3];
-1->0 [label="Front of\n", color="green"];
-2->0 [label="Left of\n", color="red"];
-3->0 [label="Front of\n", color="green"];
-4->0 [label="Right of\n", color="blue"];
+0[label="bed\nSize: 0.4 0.2\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.2];
+1[label="nightstand\nSize: 0.1 0.1\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.1, height=0.1];
+2[label="nightstand\nSize: 0.1 0.1\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.1, height=0.1];
+3[label="closet\nSize: 0.4 0.15\nOrientation: back", shape=rect, style=filled, fillcolor="lightblue", width=0.4, height=0.15];
+4[label="desk\nSize: 0.15 0.25\nOrientation: up", shape=rect, style=filled, fillcolor="lightblue", width=0.15, height=0.25];
+5[label="chair\nSize: 0.08 0.08\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.08, height=0.08];
+6[label="airconditioner\nSize: 0.04 0.2\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.04, height=0.2];
+7[label="cup\nSize: 0.02 0.02\nOrientation: up", shape=rect, style=filled, fillcolor="lightblue", width=0.02, height=0.02];
+1->0 [label="Align with\nAlign edge: 1\n", color="magenta"];
+1->0 [label="Front of\nDistance: 0\n", color="green"];
+2->0 [label="Align with\nAlign edge: 1\n", color="magenta"];
+2->0 [label="Behind\nDistance: 0\n", color="orange"];
+3->0 [label="Left of\nDistance: 0.2\n", color="red"];
+4->3 [label="Behind\nDistance: 0.2\n", color="orange"];
+5->4 [label="Close by\n", color="cyan"];
+5->4 [label="Right of\nDistance: 0.01\n", color="blue"];
+7->4 [label="Above\nDistance: 0\n", color="purple"];
 }

@@ -30,7 +30,7 @@ Window::Window(const std::string& window_name) : name_(window_name)
         throw std::runtime_error("Failed to initialize GLAD!");
     }
 
-    scene_viewer_.initshader("../../../src/Shaders/basic.vs", "../../../src/Shaders/basic.fs");
+    scene_viewer_.initshader(std::string(SHADER_DIR) + "/" + "basic.vs", std::string(SHADER_DIR) + "/" + "basic.fs");
 
     if (!init_gui()) {
         // Initialize the GUI and check for failure

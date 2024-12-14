@@ -59,7 +59,7 @@
             "orientation": 2
         },
         {
-            "label": "closer",
+            "label": "closet",
             "id": 3,
             "boundary": 4,
             "on_floor": true,

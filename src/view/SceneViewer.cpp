@@ -17,15 +17,15 @@ void SceneViewer::LoadModel(const std::string& path) {
 
 void SceneViewer::initshader(const std::string& vertexPath, const std::string& fragmentPath) {
     shader.init(vertexPath, fragmentPath);
-    skyboxshader.init("../../../src/Shaders/skybox.vs", "../../../src/Shaders/skybox.fs");
+    skyboxshader.init(std::string(SHADER_DIR) + "/" + "skybox.vs", std::string(SHADER_DIR) + "/" + "skybox.fs");
     std::vector<std::string> faces
     {
-        "../../../Assets/skybox/right.jpg",
-        "../../../Assets/skybox/left.jpg",
-        "../../../Assets/skybox/top.jpg",
-        "../../../Assets/skybox/bottom.jpg",
-        "../../../Assets/skybox/front.jpg",
-        "../../../Assets/skybox/back.jpg"
+        std::string(ASSETS_DIR) + "/" + "skybox/right.jpg",
+        std::string(ASSETS_DIR) + "/" + "skybox/left.jpg",
+        std::string(ASSETS_DIR) + "/" + "skybox/top.jpg",
+        std::string(ASSETS_DIR) + "/" + "skybox/bottom.jpg",
+        std::string(ASSETS_DIR) + "/" + "skybox/front.jpg",
+        std::string(ASSETS_DIR) + "/" + "skybox/back.jpg"
     };
     loadCubemap(faces);
     skyboxshader.use();
@@ -362,11 +362,35 @@ void SceneViewer::setupOneRoom(SceneGraph g, Boundary b)
     mat.shininess = 32.0f;
     mat.textures = {};
     VertexIterator vi, vi_end;
+    /*
+    for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+        std::string label = g[*vi].label;
+        std::string modelPath = std::string(ASSETS_DIR) + "/" + "Model" + "/" + label + ".obj";
+        Model model(modelPath);
+        glm::vec3 pos = glm::vec3(g[*vi].pos[1], g[*vi].pos[2], g[*vi].pos[0]);
+        glm::vec3 scale(1.0f, 1.0f, 1.0f);
+        scale.x = g[*vi].size[1] / (model.maxBounds.x - model.minBounds.x);
+        scale.y = g[*vi].size[2] / (model.maxBounds.y - model.minBounds.y);
+        scale.z = g[*vi].size[0] / (model.maxBounds.z - model.minBounds.z);
+        
+        // Create a transformation matrix
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, -pos);
+        transform = glm::scale(transform, scale);
+        
+        // Apply the transformation to the model
+        model.modelmatrix = transform;
+        model.updateAABB(transform);
+        models.push_back(model);
+    }
+    */
+    
     for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
         glm::vec3 pos = glm::vec3(g[*vi].pos[1], g[*vi].pos[2], g[*vi].pos[0]);
         glm::vec3 size = glm::vec3(g[*vi].size[1], g[*vi].size[2], g[*vi].size[0]);
         othermeshes.push_back(GenerateCube(pos, size, mat, scalefactor));
     }
+    
     auto wallmeshes = GenerateWall(b.points, b.size[2], scalefactor);
     for (auto& wall : wallmeshes)
         othermeshes.push_back(wall);

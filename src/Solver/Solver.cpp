@@ -500,7 +500,7 @@ void Solver::optimizeModel()
 
 void Solver::saveGraph()
 {
-    std::ofstream file_in("../../../Assets/SceneGraph/graph_in.dot");
+    std::ofstream file_in(std::string(ASSETS_DIR) + "/" + "SceneGraph/graph_in.dot");
     if (!file_in.is_open()) {
         std::cerr << "Failed to open file for writing: graph_in.dot" << std::endl;
     } else {
@@ -508,7 +508,7 @@ void Solver::saveGraph()
             edge_writer<SceneGraph::edge_descriptor>(inputGraph));
     }
     
-    std::ofstream file_out("../../../Assets/SceneGraph/graph_out.dot");
+    std::ofstream file_out(std::string(ASSETS_DIR) + "/" + "SceneGraph/graph_out.dot");
     if (!file_out.is_open()) {
         std::cerr << "Failed to open file for writing: graph_out.dot" << std::endl;
     } else {
