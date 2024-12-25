@@ -356,10 +356,10 @@ void SceneViewer::setupOneRoom(SceneGraph g, Boundary b)
 {
     float scalefactor = 10.0f / std::max(b.size[0], std::max(b.size[1], b.size[2]));
     Material mat;
-    mat.diffuseColor = glm::vec3(0.4f, 0.4f, 0.4f);
-    mat.ambientColor = glm::vec3(0.4f, 0.4f, 0.4f);
-    mat.specularColor = glm::vec3(0.1f, 0.1f, 0.1f);
-    mat.shininess = 32.0f;
+    mat.diffuseColor = glm::vec3(0.1f, 0.05f, 0.05f);
+    mat.ambientColor = glm::vec3(0.5f, 0.5f, 0.1f);
+    mat.specularColor = glm::vec3(0.00f, 0.00f, 0.00f);
+    mat.shininess = 10.0f;
     mat.textures = {};
     VertexIterator vi, vi_end;
     /*

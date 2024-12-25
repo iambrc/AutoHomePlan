@@ -1,15 +1,11 @@
 # AutoHomePlan
 
-**This is my graduation project for USTC2024.**
+**This is my graduation project for USTC2024 : Constraint-based Scene Layout Optimization Generation Assisted By LLM**
 
-<div style="text-align: center; font-size: 20px; font-weight: bold;">
-Abstract
-</div>
-
-Constraint-based 3D scene layout generation: Using large language models and the Gurobi solver to model floor plan generation and interior layout design as a mixed-integer quadratic programming problem with scene graphs as input.
+**Abstract**: Constraint-based 3D scene layout generation: Using large language models and the Gurobi solver to model floor plan generation and interior layout design as a mixed-integer quadratic programming problem with scene graphs as input.
 
 
-Current Result(The program provides a simple preview and visualization, and we will use software like Blender to achieve more detailed visualizations in the future.):
+Current Result(The program provides a simple preview and visualization, and we will use software like Blender to achieve more detailed visualizations in the future):
 
 ![FloorPlan](Assets/Figures/floorplan.png)
 
@@ -58,6 +54,10 @@ The dot files are stored in the [Asset/SceneGraph](Assets/SceneGraph) folder. Yo
 dot -Tpng input.dot -o output.png
 ```
 
+![example1](Assets/Figures/graph1.png)
+
+![example2](Assets/Figures/graph2.png)
+
 
 ## Assets
 3D assets are from [Free3D](https://free3d.com/) and [BlenderKit](https://www.blenderkit.com/).
@@ -68,4 +68,4 @@ dot -Tpng input.dot -o output.png
 TODO
 
 ## Acknowledgement
-The framework of this project partially references [2024 Computer Graphics course assignment](https://github.com/USTC-CG/USTC_CG_24) and [Learn OpenGL](https://learnopengl-cn.github.io/intro/).
+> The framework of this project partially references [2024 Computer Graphics course assignment](https://github.com/USTC-CG/USTC_CG_24) and [Learn OpenGL](https://learnopengl-cn.github.io/intro/).

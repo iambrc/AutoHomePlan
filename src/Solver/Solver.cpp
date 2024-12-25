@@ -73,39 +73,39 @@ void Solver::addConstraints()
 	// Inside Constraints & tolerance Constraint
 	VertexIterator vi, vi_end;
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
-		model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= boundary.origin_pos[0]);
-		model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= boundary.origin_pos[0] + boundary.size[0]);
-		model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= boundary.origin_pos[1]);
-		model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= boundary.origin_pos[1] + boundary.size[1]);
+		model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= boundary.origin_pos[0], "Inside_Object_" + std::to_string(g[*vi].id) + "_x_left");
+		model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= boundary.origin_pos[0] + boundary.size[0], "Inside_Object_" + std::to_string(g[*vi].id) + "_x_right");
+		model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= boundary.origin_pos[1], "Inside_Object_" + std::to_string(g[*vi].id) + "_y_back");
+		model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= boundary.origin_pos[1] + boundary.size[1], "Inside_Object_" + std::to_string(g[*vi].id) + "_y_front");
 		if (!floorplan) {
-			model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= boundary.origin_pos[2]);
-			model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= boundary.origin_pos[2] + boundary.size[2]);
+			model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= boundary.origin_pos[2], "Inside_Object_" + std::to_string(g[*vi].id) + "_z_bottom");
+			model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= boundary.origin_pos[2] + boundary.size[2], "Inside_Object_" + std::to_string(g[*vi].id) + "_z_top");
 		}
 		if (!g[*vi].pos_tolerance.empty() && !g[*vi].target_pos.empty()) {
-			model.addConstr(x_i[g[*vi].id] >= g[*vi].target_pos[0] - g[*vi].pos_tolerance[0]);
-			model.addConstr(x_i[g[*vi].id] <= g[*vi].target_pos[0] + g[*vi].pos_tolerance[0]);
-			model.addConstr(y_i[g[*vi].id] >= g[*vi].target_pos[1] - g[*vi].pos_tolerance[1]);
-			model.addConstr(y_i[g[*vi].id] <= g[*vi].target_pos[1] + g[*vi].pos_tolerance[1]);
+			model.addConstr(x_i[g[*vi].id] >= g[*vi].target_pos[0] - g[*vi].pos_tolerance[0], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_x_left");
+			model.addConstr(x_i[g[*vi].id] <= g[*vi].target_pos[0] + g[*vi].pos_tolerance[0], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_x_right");
+			model.addConstr(y_i[g[*vi].id] >= g[*vi].target_pos[1] - g[*vi].pos_tolerance[1], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_y_back");
+			model.addConstr(y_i[g[*vi].id] <= g[*vi].target_pos[1] + g[*vi].pos_tolerance[1], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_y_front");
 			if (!floorplan) {
-				model.addConstr(z_i[g[*vi].id] >= g[*vi].target_pos[2] - g[*vi].pos_tolerance[2]);
-				model.addConstr(z_i[g[*vi].id] <= g[*vi].target_pos[2] + g[*vi].pos_tolerance[2]);
+				model.addConstr(z_i[g[*vi].id] >= g[*vi].target_pos[2] - g[*vi].pos_tolerance[2], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_z_bottom");
+				model.addConstr(z_i[g[*vi].id] <= g[*vi].target_pos[2] + g[*vi].pos_tolerance[2], "Pos_Tolerance_Object_" + std::to_string(g[*vi].id) + "_z_top");
 			}
 		}
 		if (!g[*vi].size_tolerance.empty() && !g[*vi].target_size.empty()) {
-			model.addConstr(l_i[g[*vi].id] >= g[*vi].target_size[0] - g[*vi].size_tolerance[0]);
-			model.addConstr(l_i[g[*vi].id] <= g[*vi].target_size[0] + g[*vi].size_tolerance[0]);
-			model.addConstr(w_i[g[*vi].id] >= g[*vi].target_size[1] - g[*vi].size_tolerance[1]);
-			model.addConstr(w_i[g[*vi].id] <= g[*vi].target_size[1] + g[*vi].size_tolerance[1]);
+			model.addConstr(l_i[g[*vi].id] >= g[*vi].target_size[0] - g[*vi].size_tolerance[0], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_l_min");
+			model.addConstr(l_i[g[*vi].id] <= g[*vi].target_size[0] + g[*vi].size_tolerance[0], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_l_max");
+			model.addConstr(w_i[g[*vi].id] >= g[*vi].target_size[1] - g[*vi].size_tolerance[1], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_w_min");
+			model.addConstr(w_i[g[*vi].id] <= g[*vi].target_size[1] + g[*vi].size_tolerance[1], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_w_max");
 			if (!floorplan) {
-				model.addConstr(h_i[g[*vi].id] >= g[*vi].target_size[2] - g[*vi].size_tolerance[2]);
-				model.addConstr(h_i[g[*vi].id] <= g[*vi].target_size[2] + g[*vi].size_tolerance[2]);
+				model.addConstr(h_i[g[*vi].id] >= g[*vi].target_size[2] - g[*vi].size_tolerance[2], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_h_min");
+				model.addConstr(h_i[g[*vi].id] <= g[*vi].target_size[2] + g[*vi].size_tolerance[2], "Size_Tolerance_Object_" + std::to_string(g[*vi].id) + "_h_max");
 			}
 		}
 	}
 	// On floor Constraints
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
 		if (g[*vi].on_floor && !floorplan) {
-			model.addConstr(z_i[g[*vi].id] == boundary.origin_pos[2] + h_i[g[*vi].id] / 2);
+			model.addConstr(z_i[g[*vi].id] == boundary.origin_pos[2] + h_i[g[*vi].id] / 2, "On_Floor_Object_" + std::to_string(g[*vi].id));
 		}
 	}
 	// Adjacency Constraints
@@ -122,91 +122,91 @@ void Solver::addConstraints()
 		{
 		case LeftOf:
 			if (g[*ei].distance >= 0)
-				model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2);
+				model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt));
 			else
 			{
-				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2);
-				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1]);
-				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1]);
+				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "eq1");
+				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1], "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "ieq1");
+				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1], "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "ieq2");
 			}
 			break;
 		case RightOf:
 			if (g[*ei].distance >= 0)
-				model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2);
+				model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt));
 			else
 			{
-				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2);
-				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1]);
-				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1]);
+				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "eq1");
+				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1], "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "ieq1");
+				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1], "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "ieq2");
 			}
 			break;
 		case Behind:
 			if (g[*ei].distance >= 0)
-				model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2);
+				model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt));
 			else
 			{
-				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2);
-				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0]);
-				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0]);
+				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "eq1");
+				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0], "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "ieq1");
+				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0], "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "ieq2");
 			}
 			break;
 		case FrontOf:
 			if (g[*ei].distance >= 0)
-				model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2);
+				model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt));
 			else
 			{
-				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2);
-				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0]);
-				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0]);
+				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "eq1");
+				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0], "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "ieq1");
+				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0], "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "ieq2");
 			}
 			break;
 		case Under:
 			if (g[*ei].distance >= 0)
-				model.addConstr(z_i[ids] + h_i[ids] / 2 <= z_i[idt] - h_i[idt] / 2);
+				model.addConstr(z_i[ids] + h_i[ids] / 2 <= z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt));
 			else
-				model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2);
-			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2);
-			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2);
-			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2);
-			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2);
+				model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt));
+			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieq1");
+			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieq2");
+			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieq3");
+			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieq4");
 			break;
 		case Above:
 			if (g[*ei].distance >= 0)
-				model.addConstr(z_i[ids] - h_i[ids] / 2 >= z_i[idt] + h_i[idt] / 2);
+				model.addConstr(z_i[ids] - h_i[ids] / 2 >= z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt));
 			else
-				model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2);
-			model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2);
-			model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2);
-			model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2);
-			model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2);
+				model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt));
+			model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieq1");
+			model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieq2");
+			model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieq3");
+			model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieq4");
 			break;
 		case CloseBy:
 			adjacency[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
-			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0] * adjacency[ids][idt]);
-			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0] * adjacency[ids][idt]);
-			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1] * (1 - adjacency[ids][idt]));
-			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1] * (1 - adjacency[ids][idt]));
+			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0] * adjacency[ids][idt], "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieq1");
+			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0] * adjacency[ids][idt], "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieq2");
+			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1] * (1 - adjacency[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieq3");
+			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1] * (1 - adjacency[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieq4");
 			break;
 		case AlignWith:
 			switch (g[*ei].align_edge)
 			{
 			case 0:
-				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2);
+				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			case 1:
-				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2);
+				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			case 2:
-				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2);
+				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			case 3:
-				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2);
+				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			case 4:
-				model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2);
+				model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			case 5:
-				model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2);
+				model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_AlignWith_Object_" + std::to_string(idt));
 				break;
 			default:break;
 			}
@@ -225,28 +225,28 @@ void Solver::addConstraints()
 				sigma_F[g[*vi].id][g[*vj].id] = model.addVar(0, 1, 0, GRB_BINARY);
 				sigma_B[g[*vi].id][g[*vj].id] = model.addVar(0, 1, 0, GRB_BINARY);
 				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= x_i[g[*vj].id] + l_i[g[*vj].id] / 2 -
-					M * (1 - sigma_R[g[*vi].id][g[*vj].id]));
+					M * (1 - sigma_R[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "R");
 				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= x_i[g[*vj].id] - l_i[g[*vj].id] / 2 +
-					M * (1 - sigma_L[g[*vi].id][g[*vj].id]));
+					M * (1 - sigma_L[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "L");
 				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= y_i[g[*vj].id] + w_i[g[*vj].id] / 2 - 
-					M * (1 - sigma_F[g[*vi].id][g[*vj].id]));
+					M * (1 - sigma_F[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "F");
 				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= y_i[g[*vj].id] - w_i[g[*vj].id] / 2 + 
-					M * (1 - sigma_B[g[*vi].id][g[*vj].id]));
+					M * (1 - sigma_B[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "B");
 
 				if (!floorplan) {
 					sigma_U[g[*vi].id][g[*vj].id] = model.addVar(0, 1, 0, GRB_BINARY);
 					sigma_D[g[*vi].id][g[*vj].id] = model.addVar(0, 1, 0, GRB_BINARY);
 					model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= z_i[g[*vj].id] + h_i[g[*vj].id] / 2 -
-						M * (1 - sigma_U[g[*vi].id][g[*vj].id]));
+						M * (1 - sigma_U[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "U");
 					model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= z_i[g[*vj].id] - h_i[g[*vj].id] / 2 +
-						M * (1 - sigma_D[g[*vi].id][g[*vj].id]));
+						M * (1 - sigma_D[g[*vi].id][g[*vj].id]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id) + "D");
 					model.addConstr(sigma_L[g[*vi].id][g[*vj].id] + sigma_R[g[*vi].id][g[*vj].id] +
 						sigma_F[g[*vi].id][g[*vj].id] + sigma_B[g[*vi].id][g[*vj].id] +
-						sigma_U[g[*vi].id][g[*vj].id] + sigma_D[g[*vi].id][g[*vj].id] >= 1);
+						sigma_U[g[*vi].id][g[*vj].id] + sigma_D[g[*vi].id][g[*vj].id] >= 1, "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id));
 				}
 				else {
 					model.addConstr(sigma_L[g[*vi].id][g[*vj].id] + sigma_R[g[*vi].id][g[*vj].id] +
-						sigma_F[g[*vi].id][g[*vj].id] + sigma_B[g[*vi].id][g[*vj].id] >= 1);
+						sigma_F[g[*vi].id][g[*vj].id] + sigma_B[g[*vi].id][g[*vj].id] >= 1, "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Object_" + std::to_string(g[*vj].id));
 				}
 			}
 		}
@@ -259,28 +259,28 @@ void Solver::addConstraints()
 			{
 				sigma_oL[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= obstacles[i].pos[0] - obstacles[i].size[0] / 2 +
-					M * (1 - sigma_oL[g[*vi].id][i]));
+					M * (1 - sigma_oL[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "L");
 				sigma_o += sigma_oL[g[*vi].id][i];
 			}
 			if (boundary.origin_pos[0] + boundary.size[0] / 2 - obstacles[i].pos[0] - obstacles[i].size[0] / 2 > 1e-3)
 			{
 				sigma_oR[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= obstacles[i].pos[0] + obstacles[i].size[0] / 2 -
-					M * (1 - sigma_oR[g[*vi].id][i]));
+					M * (1 - sigma_oR[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "R");
 				sigma_o += sigma_oR[g[*vi].id][i];
 			}
 			if (obstacles[i].pos[1] - obstacles[i].size[1] / 2 - boundary.origin_pos[1] > 1e-3)
 			{
 				sigma_oB[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= obstacles[i].pos[1] - obstacles[i].size[1] / 2 +
-					M * (1 - sigma_oB[g[*vi].id][i]));
+					M * (1 - sigma_oB[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "B");	
 				sigma_o += sigma_oB[g[*vi].id][i];
 			}
 			if (boundary.origin_pos[1] + boundary.size[1] / 2 - obstacles[i].pos[1] - obstacles[i].size[1] / 2 > 1e-3)
 			{
 				sigma_oF[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= obstacles[i].pos[1] + obstacles[i].size[1] / 2 -
-					M * (1 - sigma_oF[g[*vi].id][i]));
+					M * (1 - sigma_oF[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "F");
 				sigma_o += sigma_oF[g[*vi].id][i];
 			}
 
@@ -289,18 +289,18 @@ void Solver::addConstraints()
 				{
 					sigma_oD[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 					model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= obstacles[i].pos[2] - obstacles[i].size[2] / 2 +
-											M * (1 - sigma_oD[g[*vi].id][i]));
+						M * (1 - sigma_oD[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "D");
 					sigma_o += sigma_oD[g[*vi].id][i];
 				}
 				if (boundary.origin_pos[2] + boundary.size[2] / 2 - obstacles[i].pos[2] - obstacles[i].size[2] / 2 > 1e-3)
 				{
 					sigma_oU[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
 					model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= obstacles[i].pos[2] + obstacles[i].size[2] / 2 -
-						M * (1 - sigma_oU[g[*vi].id][i]));
+						M * (1 - sigma_oU[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "U");
 					sigma_o += sigma_oU[g[*vi].id][i];
 				}
 			}
-			model.addConstr(sigma_o >= 1);	
+			model.addConstr(sigma_o >= 1, "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i));	
 		}
 	}
 	// Boundary Constraints
@@ -313,25 +313,25 @@ void Solver::addConstraints()
 			switch (boundary.Orientations[g[*vi].boundary])
 			{
 			case LEFT:
-				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 == x1_);
+				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 == x1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Left_eq1");
 				// Here we assume that on boundary means at least half of length is on the wall
-				model.addConstr(y_i[g[*vi].id] >= y1_);
-				model.addConstr(y_i[g[*vi].id] <= y2_);
+				model.addConstr(y_i[g[*vi].id] >= y1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Left_ieq1");
+				model.addConstr(y_i[g[*vi].id] <= y2_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Left_ieq2");
 				break;
 			case RIGHT:
-				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 == x1_);
-				model.addConstr(y_i[g[*vi].id] >= y1_);
-				model.addConstr(y_i[g[*vi].id] <= y2_);
+				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 == x1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Right_eq1");
+				model.addConstr(y_i[g[*vi].id] >= y1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Right_ieq1");
+				model.addConstr(y_i[g[*vi].id] <= y2_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Right_ieq2");
 				break;
 			case FRONT:
-				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 == y1_);
-				model.addConstr(x_i[g[*vi].id] >= x1_);
-				model.addConstr(x_i[g[*vi].id] <= x2_);
+				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 == y1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Front_eq1");
+				model.addConstr(x_i[g[*vi].id] >= x1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Front_ieq1");
+				model.addConstr(x_i[g[*vi].id] <= x2_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Front_ieq2");
 				break;
 			case BACK:
-				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 == y1_);
-				model.addConstr(x_i[g[*vi].id] >= x1_);
-				model.addConstr(x_i[g[*vi].id] <= x2_);
+				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 == y1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Back_eq1");
+				model.addConstr(x_i[g[*vi].id] >= x1_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Back_ieq1");
+				model.addConstr(x_i[g[*vi].id] <= x2_, "Boundary_Object_" + std::to_string(g[*vi].id) + "_Back_ieq2");
 				break;
 			default:break;
 			}
@@ -349,7 +349,7 @@ void Solver::addConstraints()
 		for (int i = 0; i < num_obstacles; ++i) {
 			unuse_area -= obstacles[i].size[0] * obstacles[i].size[1];
 		}
-		model.addQConstr(total_area == unuse_area);
+		model.addQConstr(total_area == unuse_area, "Area_Constraint_for_FloorPlan");
 	}
 	
 	
