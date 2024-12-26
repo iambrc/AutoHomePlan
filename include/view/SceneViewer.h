@@ -24,6 +24,8 @@ public:
     void setupRooms(SceneGraph g, float bmsize);
     void setupOneRoom(SceneGraph g, Boundary b);
 
+    void reset();
+
     glm::vec3 lightPos;
     glm::vec3 lightColor;
 

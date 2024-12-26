@@ -60,6 +60,8 @@ dot -Tpng input.dot -o output.png
 
 
 ## Assets
+skybox from [OpenGameArt.org](https://opengameart.org/content/sky-box-sunny-day).
+
 3D assets are from [Free3D](https://free3d.com/) and [BlenderKit](https://www.blenderkit.com/).
 
 **The visualization of 3D assets has not yet been implemented. We use a rectangular prism to represent the bounding box of the object.**

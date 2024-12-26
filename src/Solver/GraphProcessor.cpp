@@ -19,7 +19,19 @@ Orientation GraphProcessor::oppositeOrientation(Orientation o) {
     case FRONT: return BACK;
     case BACK: return FRONT;
     }
-    return UP;
+    return o;
+}
+
+EdgeType GraphProcessor::oppositeEdgeType(EdgeType e) {
+    switch (e) {
+    case LeftOf: return RightOf;
+    case RightOf: return LeftOf;
+    case FrontOf: return Behind;
+    case Behind: return FrontOf;
+    case Above: return Under;
+    case Under: return Above;
+    }
+    return e;
 }
 
 bool GraphProcessor::checkOverlap(std::vector<double> r1, std::vector<double> r2)
@@ -48,7 +60,8 @@ void GraphProcessor::removeCycles(SceneGraph& g, EdgeType edge_type) {
     std::vector<int> component(num_vertices(filtered_g));
     int num = boost::strong_components(filtered_g, &component[0]);
 
-    // Find and delete one edge in the ring
+    // Find rings
+    std::vector<std::vector<EdgeDescriptor>> cycles_edges;
     for (int i = 0; i < num; ++i) {
         std::vector<EdgeDescriptor> edges_to_remove;
         for (const auto &e : boost::make_iterator_range(edges(filtered_g))) {
@@ -57,16 +70,45 @@ void GraphProcessor::removeCycles(SceneGraph& g, EdgeType edge_type) {
             }
         }
         if (!edges_to_remove.empty()) {
-            boost::remove_edge(edges_to_remove.front(), g);
+            //boost::remove_edge(edges_to_remove.front(), g);
+            cycles_edges.push_back(edges_to_remove);
         }
     }
+
+    // Report cycles
+    if (!cycles_edges.empty()) {
+        //std::cout << cycles_edges.size() << " " << cycles_edges[0].size() << std::endl;
+        std::cout << "Cycles found, please choose to remove conflict constraints: " << std::endl;
+        for (const auto &edges : cycles_edges) {
+            std::cout << "Cycle: ";
+            for (const auto &e : edges) {
+                std::cout << g[source(e, g)].label << " -> " << g[target(e, g)].label << ", ";
+            }
+            std::cout << std::endl;
+            std::cout << "Plans: " << std::endl;
+            for (auto i = 0; i < edges.size(); ++i) {
+                std::cout << "Plan " << i << ": Remove edge: " << g[source(edges[i], g)].label << " " << edgenames[g[edges[i]].type] << " " << g[target(edges[i], g)].label << std::endl;
+            }
+            std::cout << "Please choose a plan to remove: ";
+            int plan;
+            std::cin >> plan;
+            if (plan < 0 || plan >= edges.size()) {
+                plan = 0;
+                std::cout << "Invalid plan, choose the first plan." << std::endl;
+            }
+            boost::remove_edge(edges[plan], g);
+            std::cout << std::endl;
+        }
+    }
+    
 }
 
-void GraphProcessor::removePositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles)
+void GraphProcessor::checkPositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles, std::vector<VertexDescriptor>& verticestoremove)
 {
 	int boundary_edges = boundary.Orientations.size();
     VertexIterator vi, vi_end;
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+        bool pos_boundary_conflict = false, pos_inside_conflict = false, pos_obstacle_conflict = false;
 		if (g[*vi].boundary >= 0 && !g[*vi].target_pos.empty() && !g[*vi].target_size.empty() && 
             !g[*vi].pos_tolerance.empty() && !g[*vi].size_tolerance.empty()) {
             double x_ = g[*vi].target_pos[0], y_ = g[*vi].target_pos[1];
@@ -83,19 +125,19 @@ void GraphProcessor::removePositionConstraint(SceneGraph& g, const Boundary& bou
             {
 			case FRONT: 
                 if (!checkOverlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 - w_ / 2, x2 - x1, y_t / 2 }))
-				    g[*vi].target_pos = {};
+				    pos_boundary_conflict = true;
 				break;
 			case BACK: 
 				if (!checkOverlap({ x_, y_, x_t, y_t }, { (x1 + x2) / 2, y1 + w_ / 2, x2 - x1, y_t / 2 }))
-					g[*vi].target_pos = {};
+					pos_boundary_conflict = true;
 				break;
 			case LEFT:
 				if (!checkOverlap({ x_, y_, x_t, y_t }, { x1 + l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
-					g[*vi].target_pos = {};
+					pos_boundary_conflict = true;
 				break;
 			case RIGHT:
                 if (!checkOverlap({ x_, y_, x_t, y_t }, { x1 - l_ / 2, (y1 + y2) / 2, l_t / 2, y2 - y1 }))
-                    g[*vi].target_pos = {};
+                    pos_boundary_conflict = true;
 				break;
 			default:
 				break;
@@ -104,21 +146,49 @@ void GraphProcessor::removePositionConstraint(SceneGraph& g, const Boundary& bou
                 if (!checkInside({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
                     { boundary.origin_pos[0] + boundary.size[0] / 2, boundary.origin_pos[1] + boundary.size[1] / 2,
                     boundary.size[0], boundary.size[1] }))
-                    g[*vi].target_pos = {};
+                    pos_inside_conflict = true;
                 else
                 {
                     for (auto i = 0; i < obstacles.size(); ++i) {
                         if (checkOverlap({ x_ - x_t / 2, y_ - y_t / 2, l_ - 2 * x_t, w_ - 2 * y_t },
                             { obstacles[i].pos[0], obstacles[i].pos[1], obstacles[i].size[0], obstacles[i].size[1] }))
                         {
-                            g[*vi].target_pos = {};
+                            pos_obstacle_conflict = true;
                             break;
                         }
                     }
                 }
             }
-            if (g[*vi].target_pos.empty())
-                g[*vi].pos_tolerance = {};
+            if (pos_boundary_conflict || pos_inside_conflict || pos_obstacle_conflict) {
+                std::cout << "Conflict found between position/size constraints and inside/obstacle/boundary constraints of Object " << g[*vi].label << ", please select a plan: " << std::endl;
+                std::cout << "Plan 0: Remove position and position tolerance constraints" << std::endl;
+                std::cout << "Plan 1: Remove position tolerance constraints only" << std::endl;
+                std::cout << "Plan 2: Remove object: " << g[*vi].label << std::endl;
+                if (pos_boundary_conflict && !pos_inside_conflict && !pos_obstacle_conflict) {
+                    std::cout << "Plan 3: Remove boundary constraints" << std::endl;
+                }
+                int plan;
+                std::cin >> plan;
+                if (plan == 0) {
+                    g[*vi].target_pos = {};
+                    g[*vi].pos_tolerance = {};
+                }
+                else if (plan == 1) {
+                    g[*vi].pos_tolerance = {};
+                }
+                else if (plan == 2) {
+                    if (std::find(verticestoremove.begin(), verticestoremove.end(), *vi) == verticestoremove.end())
+                        verticestoremove.push_back(*vi);
+                }
+                else if (plan == 3 && pos_boundary_conflict && !pos_inside_conflict && !pos_obstacle_conflict) {
+                    g[*vi].boundary = -1;
+                }
+                else {
+                    std::cout << "Invalid plan, choose the first plan." << std::endl;
+                    g[*vi].target_pos = {};
+                    g[*vi].pos_tolerance = {};
+                }
+            }
 		}
 	}
 }
@@ -128,33 +198,30 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
     SceneGraph outputGraph = inputGraph;
     // Find and work with rings in each type of edge
     std::vector<std::pair<VertexDescriptor, VertexDescriptor>> edges_to_reverse, edges_to_remove;
-	std::vector<EdgeProperties> new_edge_properties;
+	std::vector<EdgeProperties> new_edge_properties, removed_edge_properties;
     EdgeIterator ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::edges(outputGraph); ei != ei_end; ++ei) {
 		VertexDescriptor v1 = boost::source(*ei, outputGraph), v2 = boost::target(*ei, outputGraph);
         EdgeProperties ep = outputGraph[*ei];
         if (ep.type == RightOf) {
             ep.type = LeftOf;
-			edges_to_reverse.push_back(std::make_pair(v1, v2));
-			new_edge_properties.push_back(ep);
         }
-            
-        if (ep.type == Behind) {
+        else if (ep.type == Behind) {
             ep.type = FrontOf;
-			edges_to_reverse.push_back(std::make_pair(v1, v2));
-			new_edge_properties.push_back(ep);
         }
-			
-        if (ep.type == Under) {
+        else if (ep.type == Under) {
             ep.type = Above;
-			edges_to_reverse.push_back(std::make_pair(v1, v2));
-			new_edge_properties.push_back(ep);
         }
+        else {
+            continue;
+        }
+        edges_to_reverse.push_back(std::make_pair(v1, v2));
+		new_edge_properties.push_back(ep);
     }
     for (size_t i = 0; i < edges_to_reverse.size(); ++i) {
         boost::graph_traits<SceneGraph>::out_edge_iterator oe_i, oe_end;
         for (boost::tie(oe_i, oe_end) = boost::out_edges(edges_to_reverse[i].first, outputGraph); oe_i != oe_end; ++oe_i) {
-            if (boost::target(*oe_i, outputGraph) == edges_to_reverse[i].second && outputGraph[*oe_i].type != AlignWith && outputGraph[*oe_i].type != CloseBy) { 
+            if (boost::target(*oe_i, outputGraph) == edges_to_reverse[i].second && outputGraph[*oe_i].type == oppositeEdgeType(new_edge_properties[i].type)) { 
                 boost::remove_edge(*oe_i, outputGraph);
                 break;
             }
@@ -162,11 +229,12 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
         //boost::remove_edge(edges_to_reverse[i].first, edges_to_reverse[i].second, outputGraph);
         boost::add_edge(edges_to_reverse[i].second, edges_to_reverse[i].first, new_edge_properties[i], outputGraph);
     }
-    for (EdgeType edgetype : {LeftOf, RightOf, FrontOf, Behind, Above, Under}) {
+    for (EdgeType edgetype : {LeftOf, FrontOf, Above}) {
         removeCycles(outputGraph, edgetype);
     }
     // Find the contradiction between boundary constraints and position/orientation constraints
     VertexIterator vi, vi_end;
+    std::vector<VertexDescriptor> vertices_to_remove;
     for (boost::tie(vi, vi_end) = boost::vertices(outputGraph); vi != vi_end; ++vi) {
         Orientation o_vi = outputGraph[*vi].orientation;
         if (outputGraph[*vi].boundary >= 0 && boundary.Orientations[outputGraph[*vi].boundary] == o_vi)
@@ -176,21 +244,103 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
             !outputGraph[*vi].target_size.empty() && !outputGraph[*vi].size_tolerance.empty() &&
             outputGraph[*vi].target_pos[2] - outputGraph[*vi].pos_tolerance[2] >
             outputGraph[*vi].target_size[2] / 2 + outputGraph[*vi].size_tolerance[2] / 2)
-            outputGraph[*vi].target_pos[2] = outputGraph[*vi].target_size[2] / 2;
+            {
+                std::cout << "Contradiction found between position/size constraints and on-floor constraints of Object "<< outputGraph[*vi].label << ", please select a plan: " << std::endl;
+                std::cout << "Plan 0: Remove on-floor constraint" << std::endl;
+                std::cout << "Plan 1: Adjust position/size constraints" << std::endl;
+                std::cout << "Plan 2: Remove object: " << outputGraph[*vi].label << std::endl;
+                int plan;
+                std::cin >> plan;
+                if (plan == 0) {
+                    outputGraph[*vi].on_floor = false;
+                }
+                else if (plan == 1) {
+                    outputGraph[*vi].target_pos[2] = outputGraph[*vi].target_size[2] / 2;
+                }
+                else if (plan == 2) {
+                    if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), *vi) == vertices_to_remove.end())
+                        vertices_to_remove.push_back(*vi);
+                }
+                else {
+                    std::cout << "Invalid plan, choose the first plan." << std::endl;
+                    outputGraph[*vi].on_floor = false;
+                }
+                //outputGraph[*vi].target_pos[2] = outputGraph[*vi].target_size[2] / 2;
+            }
     }
-    removePositionConstraint(outputGraph, boundary, obstacles);
+    checkPositionConstraint(outputGraph, boundary, obstacles, vertices_to_remove);
     // Find contradiction between on floor constraints and above/under constraints
     for (boost::tie(ei, ei_end) = boost::edges(outputGraph); ei != ei_end; ++ei) {
 		VertexDescriptor v1 = boost::source(*ei, outputGraph);
 		VertexDescriptor v2 = boost::target(*ei, outputGraph);
-        if (outputGraph[v1].on_floor && (outputGraph[*ei].type == Above || outputGraph[*ei].type == Under))
+        if (outputGraph[v1].on_floor && outputGraph[*ei].type == Above) {
+            std::cout << "Contradiction found : Object " << outputGraph[v1].label << " on floor but above " << outputGraph[v2].label <<", please select a plan: " << std::endl;
+            std::cout << "Plan 0: Remove on-floor constraint of object "<< outputGraph[v1].label << std::endl;
+            std::cout << "Plan 1: Remove above constraint between object " << outputGraph[v1].label << " and " << outputGraph[v2].label << std::endl;
+            std::cout << "Plan 2: Remove object " << outputGraph[v2].label << std::endl;
+            int plan;
+            std::cin >> plan;
+            if (plan == 0) {
+                outputGraph[v1].on_floor = false;
+            }
+            else if (plan == 1) {
+                edges_to_remove.push_back(std::make_pair(v1, v2));
+                removed_edge_properties.push_back(outputGraph[*ei]);
+            }
+            else if (plan == 2) {
+                if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), v2) == vertices_to_remove.end())
+                    vertices_to_remove.push_back(v2);
+            }
+            else {
+                std::cout << "Invalid plan, choose the first plan." << std::endl;
+                outputGraph[v1].on_floor = false;
+            }
             outputGraph[v1].on_floor = false;
+        }
+        if (outputGraph[v2].on_floor && outputGraph[*ei].type == Under) {
+            std::cout << "Contradiction found : Object " << outputGraph[v2].label << " on floor but object " << outputGraph[v1].label << "under it, please select a plan: " << std::endl;
+            std::cout << "Plan 0: Remove on-floor constraint of object " << outputGraph[v2].label << std::endl;
+            std::cout << "Plan 1: Remove under constraint between object " << outputGraph[v1].label << " and " << outputGraph[v2].label << std::endl;
+            std::cout << "Plan 2: Remove object " << outputGraph[v1].label << std::endl;
+            int plan;
+            std::cin >> plan;
+            if (plan == 0) {
+                outputGraph[v2].on_floor = false;
+            }
+            else if (plan == 1) {
+                edges_to_remove.push_back(std::make_pair(v1, v2));
+                removed_edge_properties.push_back(outputGraph[*ei]);
+            }
+            else if (plan == 2) {
+                if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), v1) == vertices_to_remove.end())
+                    vertices_to_remove.push_back(v1);
+            }
+            else {
+                std::cout << "Invalid plan, choose the first plan." << std::endl;
+                outputGraph[v2].on_floor = false;
+            }
+        }
         //REMOVE EDGES IF TWO NODES BOTH HAVE BOUNDARY CONSTRAINTS
-		if (outputGraph[v1].boundary >= 0 && outputGraph[v2].boundary >= 0)
-			edges_to_remove.push_back(std::make_pair(v1, v2));
+		//if (outputGraph[v1].boundary >= 0 && outputGraph[v2].boundary >= 0)
+		//	edges_to_remove.push_back(std::make_pair(v1, v2));
+    }
+    for (auto i = 0; i < vertices_to_remove.size(); ++i) {
+        boost::clear_vertex(vertices_to_remove[i], outputGraph);
+        boost::remove_vertex(vertices_to_remove[i], outputGraph);
+    }
+    int idx_ = 0;
+    for (boost::tie(vi, vi_end) = boost::vertices(outputGraph); vi != vi_end; ++vi) {
+        outputGraph[*vi].id = idx_;
+        idx_++;
     }
 	for (auto i = 0; i < edges_to_remove.size(); ++i) {
-		boost::remove_edge(edges_to_remove[i].first, edges_to_remove[i].second, outputGraph);
+		boost::graph_traits<SceneGraph>::out_edge_iterator oe_i, oe_end;
+        for (boost::tie(oe_i, oe_end) = boost::out_edges(edges_to_remove[i].first, outputGraph); oe_i != oe_end; ++oe_i) {
+            if (boost::target(*oe_i, outputGraph) == edges_to_remove[i].second && outputGraph[*oe_i].type == removed_edge_properties[i].type) { 
+                boost::remove_edge(*oe_i, outputGraph);
+                break;
+            }
+        }
 	}
     return outputGraph;
 }

@@ -1,0 +1,201 @@
+{
+    "floorplan": false,
+    "windows": [
+        {
+            "pos": [0, 0.6, 0.15],
+            "size": [0, 0.2, 0.2],
+            "orientation": 2
+        }
+    ],
+    "doors": [
+        {
+            "pos": [0.4, 0, 0.12],
+            "size": [0.08, 0, 0.24],
+            "orientation": 5
+        }
+    ],
+    "boundary": {
+        "origin_pos": [0, 0, 0],
+        "size": [1, 1, 0.3],
+        "points": [
+            [0, 0], [0.7, 0], [0.7, 0.3], [1, 0.3], [1, 1], [0, 1]
+        ]
+    },
+    "obstacles": [
+
+    ],
+    "vertices": [
+        {
+            "label": "bed",
+            "id": 0,
+            "boundary": 3,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.4, 0.2, 0.1],
+            "pos_tolerance": [],
+            "size_tolerance": [0.1, 0.1, 0],
+            "orientation": 2
+        },
+        {
+            "label": "nightstand",
+            "id": 1,
+            "boundary": -1,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.1, 0.1, 0.08],
+            "pos_tolerance": [],
+            "size_tolerance": [0.02, 0.02, 0],
+            "orientation": 2
+        },
+        {
+            "label": "nightstand",
+            "id": 2,
+            "boundary": -1,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.1, 0.1, 0.08],
+            "pos_tolerance": [],
+            "size_tolerance": [0.02, 0.02, 0],
+            "orientation": 2
+        },
+        {
+            "label": "closet",
+            "id": 3,
+            "boundary": 4,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.4, 0.15, 0.2],
+            "pos_tolerance": [],
+            "size_tolerance": [0.05, 0.03, 0],
+            "orientation": 5
+        },
+        {
+            "label": "desk",
+            "id": 4,
+            "boundary": 5,
+            "on_floor": true,
+            "target_pos": [0.3, 0.4, 0.06],
+            "target_size": [0.15, 0.25, 0.12],
+            "pos_tolerance": [0.1, 0.1, 0],
+            "size_tolerance": [0.02, 0.02, 0],
+            "orientation": 0
+        },
+        {
+            "label": "chair",
+            "id": 5,
+            "boundary": -1,
+            "on_floor": true,
+            "target_pos": [],
+            "target_size": [0.08, 0.08, 0.08],
+            "pos_tolerance": [],
+            "size_tolerance": [0.02, 0.02, 0],
+            "orientation": 2
+        },
+        {
+            "label": "airconditioner",
+            "id": 6,
+            "boundary": 5,
+            "on_floor": false,
+            "target_pos": [0, 0.6, 0.25],
+            "target_size": [0.04, 0.2, 0.04],
+            "pos_tolerance": [],
+            "size_tolerance": [0, 0, 0],
+            "orientation": 2
+        },
+        {
+            "label": "cup",
+            "id": 7,
+            "boundary": -1,
+            "on_floor": false,
+            "target_pos": [],
+            "target_size": [0.02, 0.02, 0.02],
+            "pos_tolerance": [],
+            "size_tolerance": [0, 0, 0],
+            "orientation": 0
+        }
+    ],
+    "edges": [
+        {
+            "source": 1,
+            "target": 0,
+            "type": 7,
+            "distance": -1,
+            "align_edge": 1
+        },
+        {
+            "source": 2,
+            "target": 0,
+            "type": 7,
+            "distance": -1,
+            "align_edge": 1
+        },
+        {
+            "source": 1,
+            "target": 0,
+            "type": 2,
+            "distance": 0
+        },
+        {
+            "source": 2,
+            "target": 0,
+            "type": 3,
+            "distance": 0
+        },
+        {
+            "source": 3,
+            "target": 0,
+            "type": 0,
+            "distance": 0.2
+        },
+        {
+            "source": 4,
+            "target": 3,
+            "type": 3,
+            "distance": 0.2
+        },
+        {
+            "source": 5,
+            "target": 4,
+            "type": 6,
+            "distance": -1,
+            "closeby_tolerance": [0.08, 0.08]
+        },
+        {
+            "source": 5,
+            "target": 4,
+            "type": 1,
+            "distance": 0.01
+        },
+        {
+            "source": 7,
+            "target": 4,
+            "type": 4,
+            "distance": 0
+        },
+
+        {
+            "source": 1,
+            "target": 0,
+            "type": 3,
+            "distance": 0
+        },
+        {
+            "source": 2,
+            "target": 3,
+            "type": 1,
+            "distance": 0
+        },
+        {
+            "source": 3,
+            "target": 4,
+            "type": 1,
+            "distance": 0
+        },
+        {
+            "source": 4,
+            "target": 2,
+            "type": 1,
+            "distance": 0
+        }
+    ]
+}

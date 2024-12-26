@@ -36,6 +36,7 @@ private:
     bool checkOverlap(std::vector<double> r1, std::vector<double> r2);
     bool checkInside(std::vector<double> r, std::vector<double> R);
     void removeCycles(SceneGraph& g, EdgeType edge_type);
-    void removePositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles);
+    void checkPositionConstraint(SceneGraph& g, const Boundary& boundary, std::vector<Obstacles> obstacles, std::vector<VertexDescriptor>& verticestoremove);
     Orientation oppositeOrientation(Orientation o);
+    EdgeType oppositeEdgeType(EdgeType e);
 };

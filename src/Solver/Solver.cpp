@@ -743,6 +743,21 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
     g = graphProcessor.process(inputGraph, boundary, obstacles);
 	if (floorplan)
     	g = graphProcessor.splitGraph2(g, boundary);
+
+	VertexIterator vi, vi_end;
+    for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+        std::cout << "Vertex " << g[*vi].id << " (" << g[*vi].label << ")" <<
+            " Boundary Constraint: " << g[*vi].boundary <<
+            //" Priority :" << outputGraph[*vi].priority <<
+            " Orientation: " << graphProcessor.orientationnames[g[*vi].orientation] << std::endl;
+    }
+
+    EdgeIterator ei, ei_end;
+    for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
+        std::cout << "Edge (" << g[boost::source(*ei, g)].label << " -> "
+            << g[boost::target(*ei, g)].label << ") "
+            << ", Type: " << graphProcessor.edgenames[g[*ei].type] << std::endl;
+    }
 }
 
 void Solver::reset()
@@ -753,6 +768,29 @@ void Solver::reset()
 	obstacles.clear();
 	doors.clear();
 	windows.clear();
+
+	std::vector<GRBVar> vars;
+    int numVars = model.get(GRB_IntAttr_NumVars);
+    for (int i = 0; i < numVars; ++i) {
+        vars.push_back(model.getVar(i));
+    }
+	for (auto& var : vars) {
+		model.remove(var);
+	}
+    std::vector<GRBConstr> constrs;
+    int numConstrs = model.get(GRB_IntAttr_NumConstrs);
+    for (int i = 0; i < numConstrs; ++i) {
+        constrs.push_back(model.getConstr(i));
+    }
+	for (auto& constr : constrs) {
+		model.remove(constr);
+	}
+	auto qconstrs = model.getQConstrs();
+	for (auto i = 0; i < model.get(GRB_IntAttr_NumQConstrs); ++i) {
+		model.remove(qconstrs[i]);
+	}
+	
+	model.update();
 }
 
 float Solver::getboundaryMaxSize()

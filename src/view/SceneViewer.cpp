@@ -20,12 +20,12 @@ void SceneViewer::initshader(const std::string& vertexPath, const std::string& f
     skyboxshader.init(std::string(SHADER_DIR) + "/" + "skybox.vs", std::string(SHADER_DIR) + "/" + "skybox.fs");
     std::vector<std::string> faces
     {
-        std::string(ASSETS_DIR) + "/" + "skybox/right.jpg",
-        std::string(ASSETS_DIR) + "/" + "skybox/left.jpg",
-        std::string(ASSETS_DIR) + "/" + "skybox/top.jpg",
-        std::string(ASSETS_DIR) + "/" + "skybox/bottom.jpg",
-        std::string(ASSETS_DIR) + "/" + "skybox/front.jpg",
-        std::string(ASSETS_DIR) + "/" + "skybox/back.jpg"
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Right.bmp",
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Left.bmp",
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Top.bmp",
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Bottom.bmp",
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Front.bmp",
+        std::string(ASSETS_DIR) + "/" + "skybox/DaylightBox_Back.bmp"
     };
     loadCubemap(faces);
     skyboxshader.use();
@@ -428,4 +428,11 @@ Mesh SceneViewer::GenerateCube(const glm::vec3& pos, const glm::vec3& size, Mate
         4, 6, 5
     };
     return Mesh(vertices, indices, mat);
+}
+
+void SceneViewer::reset()
+{
+    models.clear();
+    othermeshes.clear();
+    selectedModelIndex = -1;
 }
