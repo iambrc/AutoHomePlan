@@ -237,13 +237,33 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
     std::vector<VertexDescriptor> vertices_to_remove;
     for (boost::tie(vi, vi_end) = boost::vertices(outputGraph); vi != vi_end; ++vi) {
         Orientation o_vi = outputGraph[*vi].orientation;
-        if (outputGraph[*vi].boundary >= 0 && boundary.Orientations[outputGraph[*vi].boundary] == o_vi)
-			outputGraph[*vi].orientation = oppositeOrientation(o_vi);
+        if (outputGraph[*vi].boundary >= 0 && boundary.Orientations[outputGraph[*vi].boundary] == o_vi) {
+            std::cout << "Conflict found: Object " << outputGraph[*vi].label << " face the wall, please select a plan: " << std::endl;
+            std::cout << "Plan 0: Adjust orientation" << std::endl;
+            std::cout << "Plan 1: Remove boundary constraint" << std::endl;
+            std::cout << "Plan 2: Remove object: " << outputGraph[*vi].label << std::endl;
+            int plan;
+            std::cin >> plan;
+            if (plan == 0) {
+                outputGraph[*vi].orientation = oppositeOrientation(o_vi);
+            }
+            else if (plan == 1) {
+                outputGraph[*vi].boundary = -1;
+            }
+            else if (plan == 2) {
+                if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), *vi) == vertices_to_remove.end())
+                    vertices_to_remove.push_back(*vi);
+            }
+            else {
+                std::cout << "Invalid plan, choose the first plan." << std::endl;
+                outputGraph[*vi].orientation = oppositeOrientation(o_vi);
+            }
+        }
         // check for contradictions between position/size constraints and on-floor constarints
         if (!outputGraph[*vi].target_pos.empty() && !outputGraph[*vi].pos_tolerance.empty() &&
             !outputGraph[*vi].target_size.empty() && !outputGraph[*vi].size_tolerance.empty() &&
             outputGraph[*vi].target_pos[2] - outputGraph[*vi].pos_tolerance[2] >
-            outputGraph[*vi].target_size[2] / 2 + outputGraph[*vi].size_tolerance[2] / 2)
+            outputGraph[*vi].target_size[2] / 2 + outputGraph[*vi].size_tolerance[2] / 2 && outputGraph[*vi].on_floor)
             {
                 std::cout << "Contradiction found between position/size constraints and on-floor constraints of Object "<< outputGraph[*vi].label << ", please select a plan: " << std::endl;
                 std::cout << "Plan 0: Remove on-floor constraint" << std::endl;
@@ -265,11 +285,11 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
                     std::cout << "Invalid plan, choose the first plan." << std::endl;
                     outputGraph[*vi].on_floor = false;
                 }
-                //outputGraph[*vi].target_pos[2] = outputGraph[*vi].target_size[2] / 2;
             }
     }
     checkPositionConstraint(outputGraph, boundary, obstacles, vertices_to_remove);
-    // Find contradiction between on floor constraints and above/under constraints
+    // Find contradiction if an object is outside the boundary
+    /*
     for (boost::tie(ei, ei_end) = boost::edges(outputGraph); ei != ei_end; ++ei) {
 		VertexDescriptor v1 = boost::source(*ei, outputGraph);
 		VertexDescriptor v2 = boost::target(*ei, outputGraph);
@@ -320,10 +340,8 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
                 outputGraph[v2].on_floor = false;
             }
         }
-        //REMOVE EDGES IF TWO NODES BOTH HAVE BOUNDARY CONSTRAINTS
-		//if (outputGraph[v1].boundary >= 0 && outputGraph[v2].boundary >= 0)
-		//	edges_to_remove.push_back(std::make_pair(v1, v2));
     }
+    */
     for (auto i = 0; i < vertices_to_remove.size(); ++i) {
         boost::clear_vertex(vertices_to_remove[i], outputGraph);
         boost::remove_vertex(vertices_to_remove[i], outputGraph);

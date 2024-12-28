@@ -107,9 +107,9 @@
             "id": 7,
             "boundary": -1,
             "on_floor": false,
-            "target_pos": [],
+            "target_pos": [0.6, 0.2, 0.3],
             "target_size": [0.02, 0.02, 0.02],
-            "pos_tolerance": [],
+            "pos_tolerance": [0, 0, 0],
             "size_tolerance": [0, 0, 0],
             "orientation": 0
         }

@@ -98,6 +98,8 @@ private:
     bool dfs_check_path(const SceneGraph& g, VertexDescriptor u, VertexDescriptor target, EdgeType required_type, std::vector<bool>& visited);
     void addConstraints();
     void optimizeModel();
+    void handleInfeasibleModel();
+    void removeIIS(std::string name);
 
     SceneGraph inputGraph, g;
     Boundary boundary;
