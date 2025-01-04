@@ -9,18 +9,21 @@ enum Orientation { UP, DOWN, LEFT, RIGHT, FRONT, BACK };
 // Notice that Frontof means coordinates y is increasing, and Behind means coordinates y is decreasing.
 enum EdgeType { LeftOf, RightOf, FrontOf, Behind, Above, Under, CloseBy, AlignWith};
 
+enum CornerType { TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT };
+
 struct VertexProperties {
 	std::string label;
-	int id, boundary, priority;
+	int id, boundary;
+	CornerType corner;
 	std::vector<double> target_pos, target_size, pos, size, pos_tolerance, size_tolerance;
 	Orientation orientation;
-	bool on_floor;
+	bool on_floor, hanging;
 };
 
 struct EdgeProperties {
 	// Notice that distance means the distance between two edges, not the center of rectangles.
 	double distance;
-	std::vector<double> closeby_tolerance;
+	std::vector<double> xyoffset;
 	// Notice that align_edge = {0, 1, 2, 3}, each number represents the alignment of bottom/right/up/left ,respectively.
 	int align_edge;
 	EdgeType type;

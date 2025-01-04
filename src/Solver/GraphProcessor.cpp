@@ -77,18 +77,23 @@ void GraphProcessor::removeCycles(SceneGraph& g, EdgeType edge_type) {
 
     // Report cycles
     if (!cycles_edges.empty()) {
-        //std::cout << cycles_edges.size() << " " << cycles_edges[0].size() << std::endl;
-        std::cout << "Cycles found, please choose to remove conflict constraints: " << std::endl;
+        conflict_info = "Cycles found, please choose to remove conflict constraints: \n";
+        plan_info = {};
+        
+        //std::cout << "Cycles found, please choose to remove conflict constraints: " << std::endl;
         for (const auto &edges : cycles_edges) {
+            /*
             std::cout << "Cycle: ";
             for (const auto &e : edges) {
                 std::cout << g[source(e, g)].label << " -> " << g[target(e, g)].label << ", ";
             }
             std::cout << std::endl;
-            std::cout << "Plans: " << std::endl;
+            */
             for (auto i = 0; i < edges.size(); ++i) {
-                std::cout << "Plan " << i << ": Remove edge: " << g[source(edges[i], g)].label << " " << edgenames[g[edges[i]].type] << " " << g[target(edges[i], g)].label << std::endl;
+                plan_info.push_back("Plan " + std::to_string(i) + ": Remove edge " + g[source(edges[i], g)].label + " " + edgenames[g[edges[i]].type] + " " + g[target(edges[i], g)].label + "\n");
+                //std::cout << "Plan " << i << ": Remove edge: " << g[source(edges[i], g)].label << " " << edgenames[g[edges[i]].type] << " " << g[target(edges[i], g)].label << std::endl;
             }
+            /*
             std::cout << "Please choose a plan to remove: ";
             int plan;
             std::cin >> plan;
@@ -98,6 +103,7 @@ void GraphProcessor::removeCycles(SceneGraph& g, EdgeType edge_type) {
             }
             boost::remove_edge(edges[plan], g);
             std::cout << std::endl;
+            */
         }
     }
     
@@ -160,13 +166,20 @@ void GraphProcessor::checkPositionConstraint(SceneGraph& g, const Boundary& boun
                 }
             }
             if (pos_boundary_conflict || pos_inside_conflict || pos_obstacle_conflict) {
-                std::cout << "Conflict found between position/size constraints and inside/obstacle/boundary constraints of Object " << g[*vi].label << ", please select a plan: " << std::endl;
-                std::cout << "Plan 0: Remove position and position tolerance constraints" << std::endl;
-                std::cout << "Plan 1: Remove position tolerance constraints only" << std::endl;
-                std::cout << "Plan 2: Remove object: " << g[*vi].label << std::endl;
+                conflict_info = "Conflict found between position/size constraints and inside/obstacle/boundary constraints of Object " + g[*vi].label + ", please select a plan: \n";
+                plan_info = {};
+                plan_info.push_back("Plan 0: Remove position and position tolerance constraints\n");
+                plan_info.push_back("Plan 1: Remove position tolerance constraints only\n");
+                plan_info.push_back("Plan 2: Remove object: " + g[*vi].label + "\n");
+                //std::cout << "Conflict found between position/size constraints and inside/obstacle/boundary constraints of Object " << g[*vi].label << ", please select a plan: " << std::endl;
+                //std::cout << "Plan 0: Remove position and position tolerance constraints" << std::endl;
+                //std::cout << "Plan 1: Remove position tolerance constraints only" << std::endl;
+                //std::cout << "Plan 2: Remove object: " << g[*vi].label << std::endl;
                 if (pos_boundary_conflict && !pos_inside_conflict && !pos_obstacle_conflict) {
-                    std::cout << "Plan 3: Remove boundary constraints" << std::endl;
+                    plan_info.push_back("Plan 3: Remove boundary constraints\n");
+                    //std::cout << "Plan 3: Remove boundary constraints" << std::endl;
                 }
+                /*
                 int plan;
                 std::cin >> plan;
                 if (plan == 0) {
@@ -188,6 +201,7 @@ void GraphProcessor::checkPositionConstraint(SceneGraph& g, const Boundary& boun
                     g[*vi].target_pos = {};
                     g[*vi].pos_tolerance = {};
                 }
+                */
             }
 		}
 	}
@@ -238,6 +252,12 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
     for (boost::tie(vi, vi_end) = boost::vertices(outputGraph); vi != vi_end; ++vi) {
         Orientation o_vi = outputGraph[*vi].orientation;
         if (outputGraph[*vi].boundary >= 0 && boundary.Orientations[outputGraph[*vi].boundary] == o_vi) {
+            conflict_info = "Conflict found: Object " + outputGraph[*vi].label + " face the wall, please select a plan: \n";
+            plan_info = {};
+            plan_info.push_back("Plan 0: Adjust orientation\n");
+            plan_info.push_back("Plan 1: Remove boundary constraint\n");
+            plan_info.push_back("Plan 2: Remove object: " + outputGraph[*vi].label + "\n");
+            /*
             std::cout << "Conflict found: Object " << outputGraph[*vi].label << " face the wall, please select a plan: " << std::endl;
             std::cout << "Plan 0: Adjust orientation" << std::endl;
             std::cout << "Plan 1: Remove boundary constraint" << std::endl;
@@ -258,6 +278,7 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
                 std::cout << "Invalid plan, choose the first plan." << std::endl;
                 outputGraph[*vi].orientation = oppositeOrientation(o_vi);
             }
+            */
         }
         // check for contradictions between position/size constraints and on-floor constarints
         if (!outputGraph[*vi].target_pos.empty() && !outputGraph[*vi].pos_tolerance.empty() &&
@@ -265,6 +286,12 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
             outputGraph[*vi].target_pos[2] - outputGraph[*vi].pos_tolerance[2] >
             outputGraph[*vi].target_size[2] / 2 + outputGraph[*vi].size_tolerance[2] / 2 && outputGraph[*vi].on_floor)
             {
+                conflict_info = "Contradiction found between position/size constraints and on-floor constraints of Object "+ outputGraph[*vi].label + ", please select a plan: \n";
+                plan_info = {};
+                plan_info.push_back("Plan 0: Remove on-floor constraint\n");
+                plan_info.push_back("Plan 1: Adjust position/size constraints\n");
+                plan_info.push_back("Plan 2: Remove object: " + outputGraph[*vi].label + "\n");
+                /*
                 std::cout << "Contradiction found between position/size constraints and on-floor constraints of Object "<< outputGraph[*vi].label << ", please select a plan: " << std::endl;
                 std::cout << "Plan 0: Remove on-floor constraint" << std::endl;
                 std::cout << "Plan 1: Adjust position/size constraints" << std::endl;
@@ -285,63 +312,10 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
                     std::cout << "Invalid plan, choose the first plan." << std::endl;
                     outputGraph[*vi].on_floor = false;
                 }
+                */
             }
     }
-    checkPositionConstraint(outputGraph, boundary, obstacles, vertices_to_remove);
-    // Find contradiction if an object is outside the boundary
-    /*
-    for (boost::tie(ei, ei_end) = boost::edges(outputGraph); ei != ei_end; ++ei) {
-		VertexDescriptor v1 = boost::source(*ei, outputGraph);
-		VertexDescriptor v2 = boost::target(*ei, outputGraph);
-        if (outputGraph[v1].on_floor && outputGraph[*ei].type == Above) {
-            std::cout << "Contradiction found : Object " << outputGraph[v1].label << " on floor but above " << outputGraph[v2].label <<", please select a plan: " << std::endl;
-            std::cout << "Plan 0: Remove on-floor constraint of object "<< outputGraph[v1].label << std::endl;
-            std::cout << "Plan 1: Remove above constraint between object " << outputGraph[v1].label << " and " << outputGraph[v2].label << std::endl;
-            std::cout << "Plan 2: Remove object " << outputGraph[v2].label << std::endl;
-            int plan;
-            std::cin >> plan;
-            if (plan == 0) {
-                outputGraph[v1].on_floor = false;
-            }
-            else if (plan == 1) {
-                edges_to_remove.push_back(std::make_pair(v1, v2));
-                removed_edge_properties.push_back(outputGraph[*ei]);
-            }
-            else if (plan == 2) {
-                if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), v2) == vertices_to_remove.end())
-                    vertices_to_remove.push_back(v2);
-            }
-            else {
-                std::cout << "Invalid plan, choose the first plan." << std::endl;
-                outputGraph[v1].on_floor = false;
-            }
-            outputGraph[v1].on_floor = false;
-        }
-        if (outputGraph[v2].on_floor && outputGraph[*ei].type == Under) {
-            std::cout << "Contradiction found : Object " << outputGraph[v2].label << " on floor but object " << outputGraph[v1].label << "under it, please select a plan: " << std::endl;
-            std::cout << "Plan 0: Remove on-floor constraint of object " << outputGraph[v2].label << std::endl;
-            std::cout << "Plan 1: Remove under constraint between object " << outputGraph[v1].label << " and " << outputGraph[v2].label << std::endl;
-            std::cout << "Plan 2: Remove object " << outputGraph[v1].label << std::endl;
-            int plan;
-            std::cin >> plan;
-            if (plan == 0) {
-                outputGraph[v2].on_floor = false;
-            }
-            else if (plan == 1) {
-                edges_to_remove.push_back(std::make_pair(v1, v2));
-                removed_edge_properties.push_back(outputGraph[*ei]);
-            }
-            else if (plan == 2) {
-                if (std::find(vertices_to_remove.begin(), vertices_to_remove.end(), v1) == vertices_to_remove.end())
-                    vertices_to_remove.push_back(v1);
-            }
-            else {
-                std::cout << "Invalid plan, choose the first plan." << std::endl;
-                outputGraph[v2].on_floor = false;
-            }
-        }
-    }
-    */
+    //checkPositionConstraint(outputGraph, boundary, obstacles, vertices_to_remove);
     for (auto i = 0; i < vertices_to_remove.size(); ++i) {
         boost::clear_vertex(vertices_to_remove[i], outputGraph);
         boost::remove_vertex(vertices_to_remove[i], outputGraph);

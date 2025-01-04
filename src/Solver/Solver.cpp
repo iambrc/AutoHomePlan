@@ -53,7 +53,10 @@ void Solver::addConstraints()
 		sigma_B(num_vertices, std::vector<GRBVar>(num_vertices)),
 		sigma_U(num_vertices, std::vector<GRBVar>(num_vertices)),
 		sigma_D(num_vertices, std::vector<GRBVar>(num_vertices)),
-		adjacency(num_vertices, std::vector<GRBVar>(num_vertices)),
+		L(num_vertices, std::vector<GRBVar>(num_vertices)),
+		R(num_vertices, std::vector<GRBVar>(num_vertices)),
+		F(num_vertices, std::vector<GRBVar>(num_vertices)),
+		B(num_vertices, std::vector<GRBVar>(num_vertices)),
 		sigma_oL(num_vertices, std::vector<GRBVar>(num_obstacles)),
 		sigma_oR(num_vertices, std::vector<GRBVar>(num_obstacles)),
 		sigma_oF(num_vertices, std::vector<GRBVar>(num_obstacles)),
@@ -108,84 +111,60 @@ void Solver::addConstraints()
 			model.addConstr(z_i[g[*vi].id] == boundary.origin_pos[2] + h_i[g[*vi].id] / 2, "On_Floor_Object_" + std::to_string(g[*vi].id));
 		}
 	}
+	// Hanging Constraints
+	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+		if (g[*vi].hanging && !floorplan) {
+			model.addConstr(z_i[g[*vi].id] == boundary.origin_pos[2] + boundary.size[2] - h_i[g[*vi].id] / 2, "Hanging_Object_" + std::to_string(g[*vi].id));
+		}
+	}
 	// Adjacency Constraints
 	EdgeIterator ei, ei_end;
 	for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
 		VertexDescriptor source = boost::source(*ei, g);
 		VertexDescriptor target = boost::target(*ei, g);
 		int ids = g[source].id, idt = g[target].id;
-		std::vector<double> min_adj = g[*ei].closeby_tolerance;
-		if (min_adj.empty()) {
-			min_adj = { 0.0, 0.0 };
-		}
 		switch(g[*ei].type)
 		{
 		case LeftOf:
 			if (g[*ei].distance >= 0)
 				model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt));
 			else
-			{
-				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "eq");
-				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1], "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "ieq");
-				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1], "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt) + "ieqq");
-			}
+				model.addConstr(x_i[ids] + l_i[ids] / 2 == x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_LeftOf_Object_" + std::to_string(idt));
 			break;
 		case RightOf:
 			if (g[*ei].distance >= 0)
 				model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt));
 			else
-			{
-				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "eq");
-				model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1], "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "ieq");
-				model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1], "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt) + "ieqq");
-			}
+				model.addConstr(x_i[ids] - l_i[ids] / 2 == x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_RightOf_Object_" + std::to_string(idt));
 			break;
 		case Behind:
 			if (g[*ei].distance >= 0)
 				model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt));
 			else
-			{
-				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "eq");
-				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0], "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "ieq");
-				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0], "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt) + "ieqq");
-			}
+				model.addConstr(y_i[ids] + w_i[ids] / 2 == y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Behind_Object_" + std::to_string(idt));
 			break;
 		case FrontOf:
 			if (g[*ei].distance >= 0)
 				model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt));
 			else
-			{
-				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "eq");
-				model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0], "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "ieq");
-				model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0], "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt) + "ieqq");
-			}
+				model.addConstr(y_i[ids] - w_i[ids] / 2 == y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_FrontOf_Object_" + std::to_string(idt));
 			break;
 		case Under:
-			if (g[*ei].distance >= 0)
-				model.addConstr(z_i[ids] + h_i[ids] / 2 <= z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt));
-			else
-				model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt));
-			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieqa");
-			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieqb");
-			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieqc");
-			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt) + "ieqd");
+			model.addConstr(z_i[ids] + h_i[ids] / 2 == z_i[idt] - h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Under_Object_" + std::to_string(idt));
 			break;
 		case Above:
-			if (g[*ei].distance >= 0)
-				model.addConstr(z_i[ids] - h_i[ids] / 2 >= z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt));
-			else
-				model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt));
-			model.addConstr(x_i[ids] - l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieqa");
-			model.addConstr(x_i[ids] + l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieqb");
-			model.addConstr(y_i[ids] - w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieqc");
-			model.addConstr(y_i[ids] + w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt) + "ieqd");
+			model.addConstr(z_i[ids] - h_i[ids] / 2 == z_i[idt] + h_i[idt] / 2, "Object_" + std::to_string(ids) + "_Above_Object_" + std::to_string(idt));
 			break;
 		case CloseBy:
-			adjacency[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
-			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 - min_adj[0] * adjacency[ids][idt], "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqa");
-			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 + min_adj[0] * adjacency[ids][idt], "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqb");
-			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 - min_adj[1] * (1 - adjacency[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqc");
-			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 + min_adj[1] * (1 - adjacency[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqd");
+			L[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
+			R[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
+			F[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
+			B[ids][idt] = model.addVar(0, 1, 0, GRB_BINARY);
+			model.addConstr(x_i[ids] - l_i[ids] / 2 <= x_i[idt] + l_i[idt] / 2 + M * (1 - R[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqa");
+			model.addConstr(x_i[ids] + l_i[ids] / 2 >= x_i[idt] - l_i[idt] / 2 - M * (1 - L[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqb");
+			model.addConstr(y_i[ids] - w_i[ids] / 2 <= y_i[idt] + w_i[idt] / 2 + M * (1 - F[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqc");
+			model.addConstr(y_i[ids] + w_i[ids] / 2 >= y_i[idt] - w_i[idt] / 2 - M * (1 - B[ids][idt]), "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqd");
+			model.addConstr(L[ids][idt] + R[ids][idt] + F[ids][idt] + B[ids][idt] <= 1, "Object_" + std::to_string(ids) + "_CloseBy_Object_" + std::to_string(idt) + "ieqe");
 			break;
 		case AlignWith:
 			switch (g[*ei].align_edge)
@@ -255,50 +234,36 @@ void Solver::addConstraints()
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
 		for (int i = 0; i < num_obstacles; ++i) {
 			GRBLinExpr sigma_o = 0;
-			if (obstacles[i].pos[0] - obstacles[i].size[0] / 2 - boundary.origin_pos[0] > 1e-3)
-			{
-				sigma_oL[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= obstacles[i].pos[0] - obstacles[i].size[0] / 2 +
-					M * (1 - sigma_oL[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "L");
-				sigma_o += sigma_oL[g[*vi].id][i];
-			}
-			if (boundary.origin_pos[0] + boundary.size[0] / 2 - obstacles[i].pos[0] - obstacles[i].size[0] / 2 > 1e-3)
-			{
-				sigma_oR[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= obstacles[i].pos[0] + obstacles[i].size[0] / 2 -
-					M * (1 - sigma_oR[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "R");
-				sigma_o += sigma_oR[g[*vi].id][i];
-			}
-			if (obstacles[i].pos[1] - obstacles[i].size[1] / 2 - boundary.origin_pos[1] > 1e-3)
-			{
-				sigma_oB[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= obstacles[i].pos[1] - obstacles[i].size[1] / 2 +
-					M * (1 - sigma_oB[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "B");	
-				sigma_o += sigma_oB[g[*vi].id][i];
-			}
-			if (boundary.origin_pos[1] + boundary.size[1] / 2 - obstacles[i].pos[1] - obstacles[i].size[1] / 2 > 1e-3)
-			{
-				sigma_oF[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= obstacles[i].pos[1] + obstacles[i].size[1] / 2 -
-					M * (1 - sigma_oF[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "F");
-				sigma_o += sigma_oF[g[*vi].id][i];
-			}
+			sigma_oL[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+			model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 <= obstacles[i].pos[0] - obstacles[i].size[0] / 2 +
+				M * (1 - sigma_oL[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "L");
+			sigma_o += sigma_oL[g[*vi].id][i];
+
+			sigma_oR[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+			model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 >= obstacles[i].pos[0] + obstacles[i].size[0] / 2 -
+				M * (1 - sigma_oR[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "R");
+			sigma_o += sigma_oR[g[*vi].id][i];
+
+			sigma_oB[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+			model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 <= obstacles[i].pos[1] - obstacles[i].size[1] / 2 +
+				M * (1 - sigma_oB[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "B");	
+			sigma_o += sigma_oB[g[*vi].id][i];
+			sigma_oF[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+
+			model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 >= obstacles[i].pos[1] + obstacles[i].size[1] / 2 -
+				M * (1 - sigma_oF[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "F");
+			sigma_o += sigma_oF[g[*vi].id][i];
 
 			if (!floorplan) {
-				if (obstacles[i].pos[2] - obstacles[i].size[2] / 2 - boundary.origin_pos[2] > 1e-3)
-				{
-					sigma_oD[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-					model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= obstacles[i].pos[2] - obstacles[i].size[2] / 2 +
-						M * (1 - sigma_oD[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "D");
-					sigma_o += sigma_oD[g[*vi].id][i];
-				}
-				if (boundary.origin_pos[2] + boundary.size[2] / 2 - obstacles[i].pos[2] - obstacles[i].size[2] / 2 > 1e-3)
-				{
-					sigma_oU[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
-					model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= obstacles[i].pos[2] + obstacles[i].size[2] / 2 -
-						M * (1 - sigma_oU[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "U");
-					sigma_o += sigma_oU[g[*vi].id][i];
-				}
+				sigma_oD[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+				model.addConstr(z_i[g[*vi].id] + h_i[g[*vi].id] / 2 <= obstacles[i].pos[2] - obstacles[i].size[2] / 2 +
+					M * (1 - sigma_oD[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "D");
+				sigma_o += sigma_oD[g[*vi].id][i];
+
+				sigma_oU[g[*vi].id][i] = model.addVar(0, 1, 0, GRB_BINARY);
+				model.addConstr(z_i[g[*vi].id] - h_i[g[*vi].id] / 2 >= obstacles[i].pos[2] + obstacles[i].size[2] / 2 -
+					M * (1 - sigma_oU[g[*vi].id][i]), "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i) + "U");
+				sigma_o += sigma_oU[g[*vi].id][i];
 			}
 			model.addConstr(sigma_o >= 1, "NonOverlap_Object_" + std::to_string(g[*vi].id) + "and_Obstacle_" + std::to_string(i));	
 		}
@@ -338,7 +303,6 @@ void Solver::addConstraints()
 		}
 	}
 	// Floor Plan Constraints :AREA
-
 	if (floorplan)
 	{
 		GRBQuadExpr total_area = 0;
@@ -350,6 +314,78 @@ void Solver::addConstraints()
 			unuse_area -= obstacles[i].size[0] * obstacles[i].size[1];
 		}
 		model.addQConstr(total_area == unuse_area, "Area_Constraint_for_FloorPlan");
+	}
+	// Corner Constraints
+	std::vector<std::vector<GRBVar>> cor(num_vertices);
+	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
+		switch (g[*vi].corner)
+		{
+			case BOTTOMLEFT:
+			{
+				int num = boundary.BLcorner.size();
+				cor[g[*vi].id].resize(num);
+				GRBLinExpr posx, posy, cors;
+				for (int i = 0; i < num; ++i) {
+					cor[g[*vi].id][i] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY);
+					posx += boundary.points[boundary.BLcorner[i]][0] * cor[g[*vi].id][i];
+					posy += boundary.points[boundary.BLcorner[i]][1] * cor[g[*vi].id][i];
+					cors += cor[g[*vi].id][i];
+				}
+				model.addConstr(cors == 1, "BottomLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqa");
+				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 == posx, "BottomLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqb");
+				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 == posy, "BottomLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqc");
+				break;
+			}
+			case BOTTOMRIGHT:
+			{
+				int num = boundary.BRcorner.size();
+				cor[g[*vi].id].resize(num);
+				GRBLinExpr posx, posy, cors;
+				for (int i = 0; i < num; ++i) {
+					cor[g[*vi].id][i] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY);
+					posx += boundary.points[boundary.BRcorner[i]][0] * cor[g[*vi].id][i];
+					posy += boundary.points[boundary.BRcorner[i]][1] * cor[g[*vi].id][i];
+					cors += cor[g[*vi].id][i];
+				}
+				model.addConstr(cors == 1, "BottomRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqa");
+				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 == posx, "BottomRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqb");
+				model.addConstr(y_i[g[*vi].id] - w_i[g[*vi].id] / 2 == posy, "BottomRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqc");
+				break;
+			}
+			case TOPLEFT:
+			{
+				int num = boundary.TLcorner.size();
+				cor[g[*vi].id].resize(num);
+				GRBLinExpr posx, posy, cors;
+				for (int i = 0; i < num; ++i) {
+					cor[g[*vi].id][i] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY);
+					posx += boundary.points[boundary.TLcorner[i]][0] * cor[g[*vi].id][i];
+					posy += boundary.points[boundary.TLcorner[i]][1] * cor[g[*vi].id][i];
+					cors += cor[g[*vi].id][i];
+				}
+				model.addConstr(cors == 1, "TopLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqa");
+				model.addConstr(x_i[g[*vi].id] - l_i[g[*vi].id] / 2 == posx, "TopLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqb");
+				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 == posy, "TopLeft_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqc");
+				break;
+			}
+			case TOPRIGHT:
+			{
+				int num = boundary.TRcorner.size();
+				cor[g[*vi].id].resize(num);
+				GRBLinExpr posx, posy, cors;
+				for (int i = 0; i < num; ++i) {
+					cor[g[*vi].id][i] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY);
+					posx += boundary.points[boundary.TRcorner[i]][0] * cor[g[*vi].id][i];
+					posy += boundary.points[boundary.TRcorner[i]][1] * cor[g[*vi].id][i];
+					cors += cor[g[*vi].id][i];
+				}
+				model.addConstr(cors == 1, "TopRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqa");
+				model.addConstr(x_i[g[*vi].id] + l_i[g[*vi].id] / 2 == posx, "TopRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqb");
+				model.addConstr(y_i[g[*vi].id] + w_i[g[*vi].id] / 2 == posy, "TopRight_Corner_of_Object_" + std::to_string(g[*vi].id) + "eqc");
+				break;
+			}
+			default: break;
+		}
 	}
 	
 	
@@ -374,6 +410,9 @@ void Solver::addConstraints()
 	for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
 		VertexDescriptor source = boost::source(*ei, g);
 		VertexDescriptor target = boost::target(*ei, g);
+		std::vector<double> offset = g[*ei].xyoffset;
+		if (offset.empty())
+			offset = { 0, 0 };
 		if (g[*ei].distance >= 0) {
 			switch (g[*ei].type)
 			{
@@ -393,16 +432,12 @@ void Solver::addConstraints()
 				obj += hyperparameters[3] * (y_i[g[source].id] - w_i[g[source].id] / 2 - y_i[g[target].id] - w_i[g[target].id] / 2 - g[*ei].distance) *
 					(y_i[g[source].id] - w_i[g[source].id] / 2 - y_i[g[target].id] - w_i[g[target].id] / 2 - g[*ei].distance);
 				break;
-			case Under:
-				obj += hyperparameters[3] * (z_i[g[target].id] - h_i[g[target].id] / 2 - z_i[g[source].id] - h_i[g[source].id] / 2 - g[*ei].distance) *
-					(z_i[g[target].id] - h_i[g[target].id] / 2 - z_i[g[source].id] - h_i[g[source].id] / 2 - g[*ei].distance);
-				break;
-			case Above:
-				obj += hyperparameters[3] * (z_i[g[source].id] - h_i[g[source].id] / 2 - z_i[g[target].id] - h_i[g[target].id] / 2 - g[*ei].distance) *
-					(z_i[g[source].id] - h_i[g[source].id] / 2 - z_i[g[target].id] - h_i[g[target].id] / 2 - g[*ei].distance);
-				break; 
 			default:break;
 			}
+		}
+		if (g[*ei].type == Above || g[*ei].type == Under || g[*ei].type == CloseBy) {
+			obj += hyperparameters[3] * (x_i[g[source].id] - x_i[g[target].id] - offset[0]) * (x_i[g[source].id] - x_i[g[target].id] - offset[0]);
+			obj += hyperparameters[3] * (y_i[g[source].id] - y_i[g[target].id] - offset[1]) * (y_i[g[source].id] - y_i[g[target].id] - offset[1]);
 		}
 	}
 	model.setObjective(obj, GRB_MINIMIZE);
@@ -488,7 +523,6 @@ void Solver::optimizeModel()
     for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
         std::cout << "Vertex " << g[*vi].id << " (" << g[*vi].label << ")" <<
             " Boundary Constraint: " << g[*vi].boundary <<
-            //" Priority :" << outputGraph[*vi].priority <<
             " Orientation: " << graphProcessor.orientationnames[g[*vi].orientation] <<
             " Target Position: " << g[*vi].target_pos.size() <<
             " Target Size: " << g[*vi].target_size.size() << std::endl;
@@ -525,7 +559,11 @@ void Solver::saveGraph()
 void Solver::solve()
 {
 	if (inputGraph.m_vertices.empty()) {
-		std::cout << "Scene Graph is empty!" << std::endl;
+		std::cerr << "Scene Graph is empty!" << std::endl;
+	}
+	else if (!graphProcessor.conflict_info.empty()) {
+		std::cout << graphProcessor.conflict_info << std::endl;
+		std::cerr << "Conflict Constraints Found" << std::endl;
 	}
 	else {
 		addConstraints();
@@ -603,7 +641,18 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
             boundary.Orientations[i] = BACK;
         }
     }
-
+	for (int i = 0; i < boundary.Orientations.size(); ++i) {
+		Orientation o1 = boundary.Orientations[i];
+		Orientation o2 = boundary.Orientations[(i + 1) % boundary.Orientations.size()];
+		if (o1 == LEFT && o2 == BACK)
+			boundary.BLcorner.push_back((i + 1) % boundary.Orientations.size());
+		else if (o1 == BACK && o2 == RIGHT)
+			boundary.BRcorner.push_back((i + 1) % boundary.Orientations.size());
+		else if (o1 == RIGHT && o2 == FRONT)
+			boundary.TRcorner.push_back((i + 1) % boundary.Orientations.size());
+		else if (o1 == FRONT && o2 == LEFT)
+			boundary.TLcorner.push_back((i + 1) % boundary.Orientations.size());
+	}
     // set obstacles from boundary and doors/windows
 	for (const auto& door : scene_graph_json["doors"]) {
 		Doors d;
@@ -697,6 +746,10 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		double maxY = std::max({path[0].Y, path[1].Y, path[2].Y, path[3].Y});
 		ob_from_boundary.pos = {(minX + maxX) / 2.0 / std::pow(10, scalingFactor), (minY + maxY)/ 2.0 / std::pow(10, scalingFactor), boundary.size[2] / 2.0};
 		ob_from_boundary.size = {(maxX - minX) / std::pow(10, scalingFactor), (maxY - minY)/ std::pow(10, scalingFactor), boundary.size[2]};
+		if (!floorplan) {
+			ob_from_boundary.size[0] += wallwidth;
+			ob_from_boundary.size[1] += wallwidth;
+		}
 		obstacles.push_back(ob_from_boundary);
     }
     // Parse JSON to set vertices
@@ -706,12 +759,13 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
         vp.id = vertex["id"];
         vp.boundary = vertex["boundary"];
         vp.on_floor = vertex["on_floor"];
+		vp.hanging = vertex["hanging"];
+		vp.corner = vertex["corner"];
         vp.target_pos = vertex["target_pos"].get<std::vector<double>>();
         vp.target_size = vertex["target_size"].get<std::vector<double>>();
 		vp.orientation = vertex["orientation"];
 		vp.size_tolerance = {};
 		vp.pos_tolerance = {};
-		vp.priority = 0;
 		if (!vp.target_size.empty()) {
 			vp.size_tolerance = vertex["size_tolerance"].get<std::vector<double>>();
 		}
@@ -728,17 +782,22 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		if (ep.type == AlignWith) {
 			ep.align_edge = edge["align_edge"];
 			ep.distance = -1;
-			ep.closeby_tolerance = {};
+			ep.xyoffset = {};
 		}
 		else if (ep.type == CloseBy) {
-			ep.closeby_tolerance = edge["closeby_tolerance"].get<std::vector<double>>();
+			ep.xyoffset = edge["xyoffset"].get<std::vector<double>>();
 			ep.distance = -1;
+			ep.align_edge = -1;
+		}
+		else if (ep.type == Above || ep.type == Under) {
+			ep.xyoffset = edge["xyoffset"].get<std::vector<double>>();
+			ep.distance = edge["distance"];
 			ep.align_edge = -1;
 		}
 		else {
 			ep.distance = edge["distance"];
 			ep.align_edge = -1;
-			ep.closeby_tolerance = {};
+			ep.xyoffset = {};
 		}
         auto source = vertex(edge["source"], inputGraph);
         auto target = vertex(edge["target"], inputGraph);
@@ -797,6 +856,8 @@ float Solver::getboundaryMaxSize()
 
 void Solver::handleInfeasibleModel() {
 	model.computeIIS();
+	graphProcessor.conflict_info = "Infeasible constraints found in IIS. List of constraints: \n";
+	graphProcessor.plan_info = {};
     
     GRBConstr* constrs = model.getConstrs();
     int numConstrs = model.get(GRB_IntAttr_NumConstrs);
@@ -807,7 +868,14 @@ void Solver::handleInfeasibleModel() {
             infeasibleConstraints.push_back(constrs[i]);
         }
     }
+	for (int i = 0; i < infeasibleConstraints.size(); ++i) {
+        std::string constrName = infeasibleConstraints[i].get(GRB_StringAttr_ConstrName);
+		graphProcessor.plan_info.push_back("Plan " + std::to_string(i) + ": " + constrName + "\n");
+        //std::cout << "Constraint " << i << ": " << constrName << std::endl;
+    }
+	model.optimize();
 
+	/*
     if (!infeasibleConstraints.empty()) {
         std::cout << "Infeasible constraints found in IIS. List of constraints: " << std::endl;
         for (int i = 0; i < infeasibleConstraints.size(); ++i) {
@@ -832,6 +900,7 @@ void Solver::handleInfeasibleModel() {
     } else {
 		std::cout << "No infeasible constraints found in IIS." << std::endl;
 	}
+	*/
 }
 
 void Solver::removeIIS(std::string name) {
@@ -867,10 +936,6 @@ void Solver::removeIIS(std::string name) {
 		}
 		model.update();
 	}
-	else if (name.find("On_Floor") != std::string::npos) {
-		model.remove(model.getConstrByName(name));
-		model.update();
-	}
 	else if (name.find("Boundary") != std::string::npos) {
 		if (name.find("Left") != std::string::npos) {
 			model.remove(model.getConstrByName(prefix + "_Left_eq"));
@@ -894,29 +959,18 @@ void Solver::removeIIS(std::string name) {
 		}
 		model.update();
 	}
-	else if (name.find("LeftOf") != std::string::npos || name.find("RightOf") != std::string::npos || 
-			name.find("FrontOf") != std::string::npos || name.find("Behind") != std::string::npos) {
-		if (name.find("eq") != std::string::npos) {
-			model.remove(model.getConstrByName(prefix + "eq"));
-			model.remove(model.getConstrByName(prefix + "ieq"));
-			model.remove(model.getConstrByName(prefix + "ieqq"));
-		}
-		else {
-			model.remove(model.getConstrByName(name));
-		}
+	else if (name.find("CloseBy") != std::string::npos) {
+		model.remove(model.getConstrByName(prefix + "ieqa"));
+		model.remove(model.getConstrByName(prefix + "ieqb"));
+		model.remove(model.getConstrByName(prefix + "ieqc"));
+		model.remove(model.getConstrByName(prefix + "ieqd"));
+		model.remove(model.getConstrByName(prefix + "ieqe"));
 		model.update();
 	}
-	else if (name.find("Above") != std::string::npos || name.find("Under") != std::string::npos || 
-			name.find("CloseBy") != std::string::npos) {
-		if (name.find("eq") != std::string::npos) {
-			model.remove(model.getConstrByName(prefix + "ieqa"));
-			model.remove(model.getConstrByName(prefix + "ieqb"));
-			model.remove(model.getConstrByName(prefix + "ieqc"));
-			model.remove(model.getConstrByName(prefix + "ieqd"));
-		}
-		else {
-			model.remove(model.getConstrByName(name));
-		}
+	else if (name.find("Corner") != std::string::npos) {
+		model.remove(model.getConstrByName(prefix + "eqa"));
+		model.remove(model.getConstrByName(prefix + "eqb"));
+		model.remove(model.getConstrByName(prefix + "eqc"));
 		model.update();
 	}
 	else {

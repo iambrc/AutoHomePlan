@@ -8,6 +8,7 @@ struct Boundary {
 	std::vector<double> origin_pos, size;
 	// Notice that orientation indicates the direction in which the outward normal direction of wall segment
 	std::vector<Orientation> Orientations;
+	std::vector<int> BLcorner, BRcorner, TLcorner, TRcorner;
 };
 
 struct Obstacles {

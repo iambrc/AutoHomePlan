@@ -31,6 +31,8 @@ public:
     std::vector<std::string> edgenames;
     std::vector<Orientation> orientations;
     std::vector<std::string> orientationnames;
+    std::string conflict_info;
+    std::vector<std::string> plan_info;
 
 private:
     bool checkOverlap(std::vector<double> r1, std::vector<double> r2);
