@@ -467,48 +467,50 @@ void Solver::optimizeModel()
 			iter++;
         }
 
-        GRBVar* vars = model.getVars();
-        int numVars = model.get(GRB_IntAttr_NumVars);
-        for (auto i = 0; i < numVars; ++i) {
-            std::string varName = vars[i].get(GRB_StringAttr_VarName);
-            double varValue = vars[i].get(GRB_DoubleAttr_X);
-            std::cout << "Variable " << varName << ": Value = " << varValue << std::endl;
-        }
-        VertexIterator vi1, vi_end1;
-		for (boost::tie(vi1, vi_end1) = boost::vertices(g); vi1 != vi_end1; ++vi1) {
-            g[*vi1].pos = { 0, 0, 0 };
-            g[*vi1].size = { 0, 0, 0 };
-			std::string varName = "x_" + std::to_string(g[*vi1].id);
-			double varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-			g[*vi1].pos[0] = varValue;
+		if (graphProcessor.conflict_info.empty()) {
+			GRBVar* vars = model.getVars();
+        	int numVars = model.get(GRB_IntAttr_NumVars);
+        	for (auto i = 0; i < numVars; ++i) {
+        	    std::string varName = vars[i].get(GRB_StringAttr_VarName);
+        	    double varValue = vars[i].get(GRB_DoubleAttr_X);
+        	    std::cout << "Variable " << varName << ": Value = " << varValue << std::endl;
+        	}
+        	VertexIterator vi1, vi_end1;
+			for (boost::tie(vi1, vi_end1) = boost::vertices(g); vi1 != vi_end1; ++vi1) {
+        	    g[*vi1].pos = { 0, 0, 0 };
+        	    g[*vi1].size = { 0, 0, 0 };
+				std::string varName = "x_" + std::to_string(g[*vi1].id);
+				double varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+				g[*vi1].pos[0] = varValue;
 
-			varName = "y_" + std::to_string(g[*vi1].id);
-			varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-			g[*vi1].pos[1] = varValue;
+				varName = "y_" + std::to_string(g[*vi1].id);
+				varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+				g[*vi1].pos[1] = varValue;
 
-			varName = "l_" + std::to_string(g[*vi1].id);
-			varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-			g[*vi1].size[0] = varValue;
+				varName = "l_" + std::to_string(g[*vi1].id);
+				varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+				g[*vi1].size[0] = varValue;
 
-			varName = "w_" + std::to_string(g[*vi1].id);
-			varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-			g[*vi1].size[1] = varValue;
+				varName = "w_" + std::to_string(g[*vi1].id);
+				varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+				g[*vi1].size[1] = varValue;
 
-            if (!floorplan) {
-                varName = "z_" + std::to_string(g[*vi1].id);
-                varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-                g[*vi1].pos[2] = varValue;
+        	    if (!floorplan) {
+        	        varName = "z_" + std::to_string(g[*vi1].id);
+        	        varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+        	        g[*vi1].pos[2] = varValue;
 
-                varName = "h_" + std::to_string(g[*vi1].id);
-                varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
-                g[*vi1].size[2] = varValue;
-            }
-            else {
-				g[*vi1].pos[2] = g[*vi1].target_size[2] / 2;
-				g[*vi1].size[2] = g[*vi1].target_size[2];
-            }
-        }
-        std::cout << "Value of objective function: " << model.get(GRB_DoubleAttr_ObjVal) << std::endl;
+        	        varName = "h_" + std::to_string(g[*vi1].id);
+        	        varValue = model.getVarByName(varName).get(GRB_DoubleAttr_X);
+        	        g[*vi1].size[2] = varValue;
+        	    }
+        	    else {
+					g[*vi1].pos[2] = g[*vi1].target_size[2] / 2;
+					g[*vi1].size[2] = g[*vi1].target_size[2];
+        	    }
+        	}
+        	std::cout << "Value of objective function: " << model.get(GRB_DoubleAttr_ObjVal) << std::endl;
+		}
     }
     catch (GRBException e) {
         std::cout << "Error code = " << e.getErrorCode() << std::endl;
@@ -554,6 +556,53 @@ void Solver::saveGraph()
             edge_writer<SceneGraph::edge_descriptor>(g));
     }
 	model.write(std::string(ASSETS_DIR) + "/" + "SceneGraph/model.lp");
+
+	try
+    {
+        std::ifstream ifs(inputpath);
+        if (!ifs.is_open())
+            std::cerr << "Failed to open input JSON file: " << inputpath << std::endl;
+        
+        nlohmann::json j;
+        ifs >> j;
+        ifs.close();
+
+		if (!graphProcessor.conflict_info.empty()) {
+			j["conflict_info"] = graphProcessor.conflict_info;
+			j["plan_info"] = {};
+			for (auto i = 0; i < graphProcessor.plan_info.size(); ++i)
+				j["plan_info"].push_back(graphProcessor.plan_info[i]);
+		}
+		else {
+			for (auto i = 0; i < j["vertices"].size(); ++i) {
+				j["vertices"][i]["position"] = {
+					g[boost::vertex(i, g)].pos[0],
+					g[boost::vertex(i, g)].pos[1],
+					g[boost::vertex(i, g)].pos[2]
+				};
+				j["vertices"][i]["size"] = {
+					g[boost::vertex(i, g)].size[0],
+					g[boost::vertex(i, g)].size[1],
+					g[boost::vertex(i, g)].size[2]
+				};
+			}
+		}
+
+		std::string outputpath = std::string(ASSETS_DIR) + "/" + "SceneGraph/output.json";
+        std::ofstream ofs(outputpath);
+        if (!ofs.is_open())
+        {
+            std::cerr << "Failed to open output JSON file: " << outputpath << std::endl;
+            return;
+        }
+        ofs << j.dump(4) << std::endl;
+        ofs.close();
+        std::cout << "JSON file has been updated and saved to: " << outputpath << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Exception occurred: " << e.what() << std::endl;
+    }
 }
 
 void Solver::solve()
@@ -568,13 +617,14 @@ void Solver::solve()
 	else {
 		addConstraints();
     	optimizeModel();
-    	saveGraph();
 	}
+	saveGraph();
 }
 
 void Solver::readSceneGraph(const std::string& path, float wallwidth)
 {
 	reset();
+	inputpath = path;
 	// Read JSON file
 	std::ifstream file(path);
     nlohmann::json scene_graph_json;

@@ -386,9 +386,11 @@ void SceneViewer::setupOneRoom(SceneGraph g, Boundary b)
     */
     
     for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
-        glm::vec3 pos = glm::vec3(g[*vi].pos[1], g[*vi].pos[2], g[*vi].pos[0]);
-        glm::vec3 size = glm::vec3(g[*vi].size[1], g[*vi].size[2], g[*vi].size[0]);
-        othermeshes.push_back(GenerateCube(pos, size, mat, scalefactor));
+        if (g[*vi].pos.size() > 0 && g[*vi].size.size() > 0) {
+            glm::vec3 pos = glm::vec3(g[*vi].pos[1], g[*vi].pos[2], g[*vi].pos[0]);
+            glm::vec3 size = glm::vec3(g[*vi].size[1], g[*vi].size[2], g[*vi].size[0]);
+            othermeshes.push_back(GenerateCube(pos, size, mat, scalefactor));
+        }
     }
     
     auto wallmeshes = GenerateWall(b.points, b.size[2], scalefactor);

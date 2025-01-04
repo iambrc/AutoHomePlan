@@ -110,4 +110,6 @@ private:
 
     GRBEnv env;
     GRBModel model;
+
+    std::string inputpath;
 };

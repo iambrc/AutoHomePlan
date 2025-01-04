@@ -1,0 +1,350 @@
+{
+    "boundary": {
+        "origin_pos": [
+            0,
+            0,
+            0
+        ],
+        "points": [
+            [
+                0,
+                0
+            ],
+            [
+                0.7,
+                0
+            ],
+            [
+                0.7,
+                0.3
+            ],
+            [
+                1,
+                0.3
+            ],
+            [
+                1,
+                1
+            ],
+            [
+                0,
+                1
+            ]
+        ],
+        "size": [
+            1,
+            1,
+            0.3
+        ]
+    },
+    "conflict_info": "Conflict found: Object light face the wall, please select a plan: \n",
+    "doors": [
+        {
+            "orientation": 5,
+            "pos": [
+                0.4,
+                0,
+                0.12
+            ],
+            "size": [
+                0.08,
+                0,
+                0.24
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "align_edge": 1,
+            "distance": -1,
+            "source": 1,
+            "target": 0,
+            "type": 7
+        },
+        {
+            "align_edge": 1,
+            "distance": -1,
+            "source": 2,
+            "target": 0,
+            "type": 7
+        },
+        {
+            "distance": 0,
+            "source": 1,
+            "target": 0,
+            "type": 2
+        },
+        {
+            "distance": 0,
+            "source": 2,
+            "target": 0,
+            "type": 3
+        },
+        {
+            "distance": 0.2,
+            "source": 3,
+            "target": 0,
+            "type": 0
+        },
+        {
+            "distance": 0.2,
+            "source": 4,
+            "target": 3,
+            "type": 3
+        },
+        {
+            "distance": -1,
+            "source": 5,
+            "target": 4,
+            "type": 6,
+            "xyoffset": [
+                0.08,
+                0.08
+            ]
+        },
+        {
+            "distance": 0.01,
+            "source": 5,
+            "target": 4,
+            "type": 1
+        },
+        {
+            "distance": 0,
+            "source": 7,
+            "target": 4,
+            "type": 4,
+            "xyoffset": [
+                0,
+                0
+            ]
+        },
+        {
+            "distance": 0,
+            "source": 1,
+            "target": 0,
+            "type": 3
+        },
+        {
+            "distance": 0,
+            "source": 2,
+            "target": 3,
+            "type": 1
+        },
+        {
+            "distance": 0,
+            "source": 3,
+            "target": 4,
+            "type": 1
+        },
+        {
+            "distance": 0,
+            "source": 4,
+            "target": 2,
+            "type": 1
+        }
+    ],
+    "floorplan": false,
+    "obstacles": [],
+    "plan_info": [
+        "Plan 0: Adjust orientation\n",
+        "Plan 1: Remove boundary constraint\n",
+        "Plan 2: Remove object: light\n"
+    ],
+    "vertices": [
+        {
+            "boundary": 3,
+            "corner": -1,
+            "hanging": false,
+            "id": 0,
+            "label": "bed",
+            "on_floor": true,
+            "orientation": 2,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0.1,
+                0.1,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.4,
+                0.2,
+                0.1
+            ]
+        },
+        {
+            "boundary": -1,
+            "corner": -1,
+            "hanging": false,
+            "id": 1,
+            "label": "nightstand",
+            "on_floor": true,
+            "orientation": 2,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0.02,
+                0.02,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.1,
+                0.1,
+                0.08
+            ]
+        },
+        {
+            "boundary": -1,
+            "corner": -1,
+            "hanging": false,
+            "id": 2,
+            "label": "nightstand",
+            "on_floor": true,
+            "orientation": 2,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0.02,
+                0.02,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.1,
+                0.1,
+                0.08
+            ]
+        },
+        {
+            "boundary": -1,
+            "corner": 0,
+            "hanging": false,
+            "id": 3,
+            "label": "closet",
+            "on_floor": true,
+            "orientation": 5,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0.05,
+                0.03,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.4,
+                0.15,
+                0.2
+            ]
+        },
+        {
+            "boundary": 5,
+            "corner": -1,
+            "hanging": false,
+            "id": 4,
+            "label": "desk",
+            "on_floor": true,
+            "orientation": 0,
+            "pos_tolerance": [
+                0.1,
+                0.1,
+                0
+            ],
+            "size_tolerance": [
+                0.02,
+                0.02,
+                0
+            ],
+            "target_pos": [
+                0.3,
+                0.4,
+                0.06
+            ],
+            "target_size": [
+                0.15,
+                0.25,
+                0.12
+            ]
+        },
+        {
+            "boundary": -1,
+            "corner": -1,
+            "hanging": false,
+            "id": 5,
+            "label": "chair",
+            "on_floor": true,
+            "orientation": 2,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0.02,
+                0.02,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.08,
+                0.08,
+                0.08
+            ]
+        },
+        {
+            "boundary": 5,
+            "corner": -1,
+            "hanging": true,
+            "id": 6,
+            "label": "light",
+            "on_floor": false,
+            "orientation": 2,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0,
+                0,
+                0
+            ],
+            "target_pos": [
+                0.5,
+                0.5,
+                0.25
+            ],
+            "target_size": [
+                0.04,
+                0.04,
+                0.1
+            ]
+        },
+        {
+            "boundary": -1,
+            "corner": -1,
+            "hanging": true,
+            "id": 7,
+            "label": "cup",
+            "on_floor": false,
+            "orientation": 0,
+            "pos_tolerance": [],
+            "size_tolerance": [
+                0,
+                0,
+                0
+            ],
+            "target_pos": [],
+            "target_size": [
+                0.02,
+                0.02,
+                0.02
+            ]
+        }
+    ],
+    "windows": [
+        {
+            "orientation": 2,
+            "pos": [
+                0,
+                0.6,
+                0.15
+            ],
+            "size": [
+                0,
+                0.2,
+                0.2
+            ]
+        }
+    ]
+}
