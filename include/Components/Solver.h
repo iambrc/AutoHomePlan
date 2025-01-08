@@ -100,6 +100,7 @@ private:
     void optimizeModel();
     void handleInfeasibleModel();
     void removeIIS(std::string name);
+    void clearModel();
 
     SceneGraph inputGraph, g;
     Boundary boundary;

@@ -391,20 +391,20 @@ void Solver::addConstraints()
 	
 	// Objective Function
 	// Notice that hyperparameters are the weights of area, size error, position error, adjacency error.
-	GRBQuadExpr obj = hyperparameters[0] * boundary.size[0] * boundary.size[1];
+	GRBQuadExpr obj = hyperparameters[0];
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
-		obj -= hyperparameters[0] * l_i[g[*vi].id] * w_i[g[*vi].id];
+		obj -= hyperparameters[0] * l_i[g[*vi].id] * w_i[g[*vi].id] / boundary.size[0] / boundary.size[1];
 		if (!g[*vi].target_size.empty()) {
-			obj += hyperparameters[1] * (l_i[g[*vi].id] - g[*vi].target_size[0]) * (l_i[g[*vi].id] - g[*vi].target_size[0]);
-			obj += hyperparameters[1] * (w_i[g[*vi].id] - g[*vi].target_size[1]) * (w_i[g[*vi].id] - g[*vi].target_size[1]);
+			obj += hyperparameters[1] * (l_i[g[*vi].id] - g[*vi].target_size[0]) * (l_i[g[*vi].id] - g[*vi].target_size[0]) / boundary.size[0] / boundary.size[0];
+			obj += hyperparameters[1] * (w_i[g[*vi].id] - g[*vi].target_size[1]) * (w_i[g[*vi].id] - g[*vi].target_size[1]) / boundary.size[1] / boundary.size[1];
 			if (!floorplan)
-				obj += hyperparameters[1] * (h_i[g[*vi].id] - g[*vi].target_size[2]) * (h_i[g[*vi].id] - g[*vi].target_size[2]);
+				obj += hyperparameters[1] * (h_i[g[*vi].id] - g[*vi].target_size[2]) * (h_i[g[*vi].id] - g[*vi].target_size[2]) / boundary.size[2] / boundary.size[2];
 		}
 		if (!g[*vi].target_pos.empty()) {
-			obj += hyperparameters[2] * (x_i[g[*vi].id] - g[*vi].target_pos[0]) * (x_i[g[*vi].id] - g[*vi].target_pos[0]);
-			obj += hyperparameters[2] * (y_i[g[*vi].id] - g[*vi].target_pos[1]) * (y_i[g[*vi].id] - g[*vi].target_pos[1]);
+			obj += hyperparameters[2] * (x_i[g[*vi].id] - g[*vi].target_pos[0]) * (x_i[g[*vi].id] - g[*vi].target_pos[0]) / boundary.size[0] / boundary.size[0];
+			obj += hyperparameters[2] * (y_i[g[*vi].id] - g[*vi].target_pos[1]) * (y_i[g[*vi].id] - g[*vi].target_pos[1]) / boundary.size[1] / boundary.size[1];
 			if (!floorplan)
-				obj += hyperparameters[2] * (z_i[g[*vi].id] - g[*vi].target_pos[2]) * (z_i[g[*vi].id] - g[*vi].target_pos[2]);
+				obj += hyperparameters[2] * (z_i[g[*vi].id] - g[*vi].target_pos[2]) * (z_i[g[*vi].id] - g[*vi].target_pos[2]) / boundary.size[2] / boundary.size[2];
 		}
 	}
 	for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
@@ -418,26 +418,26 @@ void Solver::addConstraints()
 			{
 			case LeftOf:
 				obj += hyperparameters[3] * (x_i[g[target].id] - l_i[g[target].id] / 2 - x_i[g[source].id] - l_i[g[source].id] / 2 - g[*ei].distance) *
-					(x_i[g[target].id] - l_i[g[target].id] / 2 - x_i[g[source].id] - l_i[g[source].id] / 2 - g[*ei].distance);
+					(x_i[g[target].id] - l_i[g[target].id] / 2 - x_i[g[source].id] - l_i[g[source].id] / 2 - g[*ei].distance) / boundary.size[0] / boundary.size[0];
 				break;
 			case RightOf:
 				obj += hyperparameters[3] * (x_i[g[source].id] - l_i[g[source].id] / 2 - x_i[g[target].id] - l_i[g[target].id] / 2 - g[*ei].distance) *
-					(x_i[g[source].id] - l_i[g[source].id] / 2 - x_i[g[target].id] - l_i[g[target].id] / 2 - g[*ei].distance);
+					(x_i[g[source].id] - l_i[g[source].id] / 2 - x_i[g[target].id] - l_i[g[target].id] / 2 - g[*ei].distance) / boundary.size[0] / boundary.size[0];
 				break;
 			case Behind:
 				obj += hyperparameters[3] * (y_i[g[target].id] - w_i[g[target].id] / 2 - y_i[g[source].id] - w_i[g[source].id] / 2 - g[*ei].distance) *
-					(y_i[g[target].id] - w_i[g[target].id] / 2 - y_i[g[source].id] - w_i[g[source].id] / 2 - g[*ei].distance);
+					(y_i[g[target].id] - w_i[g[target].id] / 2 - y_i[g[source].id] - w_i[g[source].id] / 2 - g[*ei].distance) / boundary.size[1] / boundary.size[1];
 				break;
 			case FrontOf:
 				obj += hyperparameters[3] * (y_i[g[source].id] - w_i[g[source].id] / 2 - y_i[g[target].id] - w_i[g[target].id] / 2 - g[*ei].distance) *
-					(y_i[g[source].id] - w_i[g[source].id] / 2 - y_i[g[target].id] - w_i[g[target].id] / 2 - g[*ei].distance);
+					(y_i[g[source].id] - w_i[g[source].id] / 2 - y_i[g[target].id] - w_i[g[target].id] / 2 - g[*ei].distance) / boundary.size[1] / boundary.size[1];
 				break;
 			default:break;
 			}
 		}
 		if (g[*ei].type == Above || g[*ei].type == Under || g[*ei].type == CloseBy) {
-			obj += hyperparameters[3] * (x_i[g[source].id] - x_i[g[target].id] - offset[0]) * (x_i[g[source].id] - x_i[g[target].id] - offset[0]);
-			obj += hyperparameters[3] * (y_i[g[source].id] - y_i[g[target].id] - offset[1]) * (y_i[g[source].id] - y_i[g[target].id] - offset[1]);
+			obj += hyperparameters[3] * (x_i[g[source].id] - x_i[g[target].id] - offset[0]) * (x_i[g[source].id] - x_i[g[target].id] - offset[0]) / boundary.size[0] / boundary.size[0];
+			obj += hyperparameters[3] * (y_i[g[source].id] - y_i[g[target].id] - offset[1]) * (y_i[g[source].id] - y_i[g[target].id] - offset[1]) / boundary.size[1] / boundary.size[1];
 		}
 	}
 	model.setObjective(obj, GRB_MINIMIZE);
@@ -615,6 +615,7 @@ void Solver::solve()
 		std::cerr << "Conflict Constraints Found" << std::endl;
 	}
 	else {
+		clearModel();
 		addConstraints();
     	optimizeModel();
 	}
@@ -803,6 +804,9 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		obstacles.push_back(ob_from_boundary);
     }
     // Parse JSON to set vertices
+	std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 1);
     for (const auto& vertex : scene_graph_json["vertices"]) {
         VertexProperties vp;
         vp.label = vertex["label"];
@@ -816,9 +820,15 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		vp.orientation = vertex["orientation"];
 		vp.size_tolerance = {};
 		vp.pos_tolerance = {};
+		/* Adjust orientation based on target size (NEEDED OR NOT?)
 		if (!vp.target_size.empty()) {
 			vp.size_tolerance = vertex["size_tolerance"].get<std::vector<double>>();
+			if (vp.target_size[0] > vp.target_size[1])
+				vp.orientation = dis(gen) == 0 ? FRONT : BACK;
+			else
+				vp.orientation = dis(gen) == 0 ? LEFT : RIGHT;
 		}
+		*/
 		if (!vp.target_pos.empty()) {
 			vp.pos_tolerance = vertex["pos_tolerance"].get<std::vector<double>>();
 		}
@@ -882,7 +892,11 @@ void Solver::reset()
 	obstacles.clear();
 	doors.clear();
 	windows.clear();
+	clearModel();
+}
+	
 
+void Solver::clearModel() {
 	auto vars = model.getVars();
 	for (auto i = 0; i < model.get(GRB_IntAttr_NumVars); ++i) {
 		model.remove(vars[i]);
@@ -895,7 +909,6 @@ void Solver::reset()
 	for (auto i = 0; i < model.get(GRB_IntAttr_NumQConstrs); ++i) {
 		model.remove(qconstrs[i]);
 	}
-	
 	model.update();
 }
 

@@ -112,6 +112,7 @@ void Window::BuildUI()
 
         if (ImGui::Button("Solve"))
         {
+            scene_viewer_.reset();
             solver_.solve();
             if (solver_.floorplan)
                 scene_viewer_.setupRooms(solver_.getsolution(), solver_.getboundaryMaxSize());
