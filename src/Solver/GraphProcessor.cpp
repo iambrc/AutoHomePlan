@@ -339,6 +339,7 @@ SceneGraph GraphProcessor::process(const SceneGraph& inputGraph, const Boundary&
 
 SceneGraph GraphProcessor::splitGraph4(const SceneGraph& g, const Boundary& boundary)
 {
+    // No use No use
     // Split the graph into four parts not completely implemented, Split into 2 parts get better results.
     SceneGraph g_split = {};
 	auto num_vertices = boost::num_vertices(g), num_edges = boost::num_edges(g);
@@ -491,7 +492,8 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
             }
             auto v1 = boost::add_vertex(vp1, g_split);
             auto v2 = boost::add_vertex(vp2, g_split);
-            boost::add_edge(v1, v2, EdgeProperties{ -1, {g[*vi].target_size[0] / 2, 0}, -1, FrontOf}, g_split);
+            boost::add_edge(v1, v2, EdgeProperties{ -1, {0, 0}, -1, FrontOf}, g_split);
+            boost::add_edge(v1, v2, EdgeProperties{ -1, {0, (g[*vi].target_size[1]) / 2}, -1, CloseBy}, g_split);
 			split_type[g[*vi].id] = 1;
         }
         // Here we default to the vertical split (vp2|vp1)
@@ -532,7 +534,8 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
             }
             auto v1 = boost::add_vertex(vp1, g_split);
             auto v2 = boost::add_vertex(vp2, g_split);
-            boost::add_edge(v2, v1, EdgeProperties{ -1, {0, g[*vi].target_size[1] / 2}, -1, LeftOf}, g_split);
+            boost::add_edge(v2, v1, EdgeProperties{ -1, {0, 0}, -1, LeftOf}, g_split);
+            boost::add_edge(v2, v1, EdgeProperties{ -1, {-(g[*vi].target_size[0]) / 2, 0}, -1, CloseBy}, g_split);
         }
     }
 
@@ -607,4 +610,10 @@ SceneGraph GraphProcessor::splitGraph2(const SceneGraph& g, const Boundary& boun
         }
     }
     return g_split;
+}
+
+void GraphProcessor::reset()
+{
+    conflict_info = "";
+    plan_info = {};
 }

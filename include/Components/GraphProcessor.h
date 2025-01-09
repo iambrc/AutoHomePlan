@@ -26,6 +26,7 @@ public:
     SceneGraph process(const SceneGraph& inputGraph, const Boundary& boundary, std::vector<Obstacles> obstacles);
     SceneGraph splitGraph4(const SceneGraph& g, const Boundary& boundary);
     SceneGraph splitGraph2(const SceneGraph& g, const Boundary& boundary);
+    void reset();
 
     std::vector<EdgeType> edgetypes;
     std::vector<std::string> edgenames;

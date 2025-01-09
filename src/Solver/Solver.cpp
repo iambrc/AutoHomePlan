@@ -8,7 +8,7 @@ std::vector<std::string> show_orientations = { "up", "down", "left", "right", "f
 
 Solver::Solver() : env(), model(env) {
     // Initialize solver-related data if needed
-    hyperparameters = {1, 1, 1, 1};
+    hyperparameters = {0.5, 1, 1, 1};
 	scalingFactor = 3;
 }
 
@@ -393,7 +393,16 @@ void Solver::addConstraints()
 	// Notice that hyperparameters are the weights of area, size error, position error, adjacency error.
 	GRBQuadExpr obj = hyperparameters[0];
 	for (boost::tie(vi, vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
-		obj -= hyperparameters[0] * l_i[g[*vi].id] * w_i[g[*vi].id] / boundary.size[0] / boundary.size[1];
+		bool area_flag = true;
+		boost::graph_traits<SceneGraph>::out_edge_iterator e_out, e_end;
+		for (boost::tie(e_out, e_end) = boost::out_edges(*vi, g); e_out != e_end; ++e_out) {
+			if (g[*e_out].type == Above || g[*e_out].type == Under) {
+				area_flag = false;
+				break;
+			}
+		}
+		if (area_flag)
+			obj -= hyperparameters[0] * l_i[g[*vi].id] * w_i[g[*vi].id] / boundary.size[0] / boundary.size[1];
 		if (!g[*vi].target_size.empty()) {
 			obj += hyperparameters[1] * (l_i[g[*vi].id] - g[*vi].target_size[0]) * (l_i[g[*vi].id] - g[*vi].target_size[0]) / boundary.size[0] / boundary.size[0];
 			obj += hyperparameters[1] * (w_i[g[*vi].id] - g[*vi].target_size[1]) * (w_i[g[*vi].id] - g[*vi].target_size[1]) / boundary.size[1] / boundary.size[1];
@@ -574,6 +583,8 @@ void Solver::saveGraph()
 				j["plan_info"].push_back(graphProcessor.plan_info[i]);
 		}
 		else {
+			j["conflict_info"] = "";
+			j["plan_info"] = {};
 			for (auto i = 0; i < j["vertices"].size(); ++i) {
 				j["vertices"][i]["position"] = {
 					g[boost::vertex(i, g)].pos[0],
@@ -804,9 +815,9 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		obstacles.push_back(ob_from_boundary);
     }
     // Parse JSON to set vertices
-	std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 1);
+	// std::random_device rd;
+    // std::mt19937 gen(rd());
+    // std::uniform_int_distribution<> dis(0, 1);
     for (const auto& vertex : scene_graph_json["vertices"]) {
         VertexProperties vp;
         vp.label = vertex["label"];
@@ -892,6 +903,7 @@ void Solver::reset()
 	obstacles.clear();
 	doors.clear();
 	windows.clear();
+	graphProcessor.reset();
 	clearModel();
 }
 	
@@ -933,7 +945,7 @@ void Solver::handleInfeasibleModel() {
     }
 	for (int i = 0; i < infeasibleConstraints.size(); ++i) {
         std::string constrName = infeasibleConstraints[i].get(GRB_StringAttr_ConstrName);
-		graphProcessor.plan_info.push_back("Plan " + std::to_string(i) + ": " + constrName + "\n");
+		graphProcessor.plan_info.push_back("Constraint " + std::to_string(i) + ": " + constrName + "\n");
         //std::cout << "Constraint " << i << ": " << constrName << std::endl;
     }
 	model.optimize();
@@ -967,6 +979,7 @@ void Solver::handleInfeasibleModel() {
 }
 
 void Solver::removeIIS(std::string name) {
+	// Unused Now
 	GRBConstr* constrs = model.getConstrs();
 	int numConstrs = model.get(GRB_IntAttr_NumConstrs);
 	size_t pos1 = name.find_first_of("0123456789");

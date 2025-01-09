@@ -106,7 +106,7 @@
         {
             "label": "light",
             "id": 6,
-            "boundary": 5,
+            "boundary": -1,
             "corner": -1,
             "on_floor": false,
             "hanging" : true,

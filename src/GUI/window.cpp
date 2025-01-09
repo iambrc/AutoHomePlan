@@ -173,6 +173,7 @@ void Window::BuildUI()
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 scene_viewer_.reset();
+                solver_.reset();
                 solver_.readSceneGraph(filePathName, scene_viewer_.wallWidth);
             }
             ImGuiFileDialog::Instance()->Close();
