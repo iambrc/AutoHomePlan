@@ -1,11 +1,11 @@
 digraph G {
-0[label="bed\nSize: 0.421596 0.305399\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.421596, height=0.305399];
-1[label="nightstand\nSize: 0.133333 0.133333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.133333, height=0.133333];
-2[label="nightstand\nSize: 0.133333 0.133333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.133333, height=0.133333];
-3[label="closet\nSize: 0.413158 0.271645\nOrientation: back", shape=rect, style=filled, fillcolor="lightblue", width=0.413158, height=0.271645];
-4[label="desk\nSize: 0.203478 0.30087\nOrientation: up", shape=rect, style=filled, fillcolor="lightblue", width=0.203478, height=0.30087];
-5[label="chair\nSize: 0.0834783 0.10087\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.0834783, height=0.10087];
-6[label="light\nSize: 0.0533333 0.0533333\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.0533333, height=0.0533333];
+0[label="bed\nSize: 0.430208 0.33444\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.430208, height=0.33444];
+1[label="nightstand\nSize: 0.145455 0.145455\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.145455, height=0.145455];
+2[label="nightstand\nSize: 0.145455 0.145455\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.145455, height=0.145455];
+3[label="closet\nSize: 0.414808 0.28516\nOrientation: back", shape=rect, style=filled, fillcolor="lightblue", width=0.414808, height=0.28516];
+4[label="desk\nSize: 0.220016 0.318755\nOrientation: up", shape=rect, style=filled, fillcolor="lightblue", width=0.220016, height=0.318755];
+5[label="chair\nSize: 0.0835659 0.106114\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.0835659, height=0.106114];
+6[label="light\nSize: 0.0581818 0.0581818\nOrientation: left", shape=rect, style=filled, fillcolor="lightblue", width=0.0581818, height=0.0581818];
 7[label="cup\nSize: 0.02 0.02\nOrientation: up", shape=rect, style=filled, fillcolor="lightblue", width=0.02, height=0.02];
 0->2 [label="Front of\nDistance: 0\n", color="green"];
 1->0 [label="Align with\nAlign edge: 1\n", color="magenta"];
