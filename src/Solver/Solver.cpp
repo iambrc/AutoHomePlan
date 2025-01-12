@@ -839,15 +839,17 @@ void Solver::readSceneGraph(const std::string& path, float wallwidth)
 		vp.orientation = vertex["orientation"];
 		vp.size_tolerance = {};
 		vp.pos_tolerance = {};
-		/* Adjust orientation based on target size (NEEDED OR NOT?)
 		if (!vp.target_size.empty()) {
 			vp.size_tolerance = vertex["size_tolerance"].get<std::vector<double>>();
-			if (vp.target_size[0] > vp.target_size[1])
-				vp.orientation = dis(gen) == 0 ? FRONT : BACK;
-			else
-				vp.orientation = dis(gen) == 0 ? LEFT : RIGHT;
+			if (vp.size_tolerance.empty()) {
+				vp.size_tolerance[0] = vp.target_size[0] * 0.1;
+				vp.size_tolerance[1] = vp.target_size[1] * 0.1;
+				if (vp.on_floor)
+					vp.size_tolerance[2] = 0;
+				else
+					vp.size_tolerance[2] = vp.target_size[2] * 0.1;
+			}
 		}
-		*/
 		if (!vp.target_pos.empty()) {
 			vp.pos_tolerance = vertex["pos_tolerance"].get<std::vector<double>>();
 		}
